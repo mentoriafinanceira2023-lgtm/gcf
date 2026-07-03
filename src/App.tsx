@@ -4,6 +4,8 @@ import MainLayout from './layouts/MainLayout'
 import ClientsPage from './pages/ClientsPage'
 import DashboardPage from './pages/DashboardPage'
 import PlaceholderPage from './pages/PlaceholderPage'
+import CRMPage from './modules/crm/CRMPage'
+import AgendaPage from './pages/AgendaPage'
 
 function App() {
   return (
@@ -35,19 +37,12 @@ function App() {
         path="/agenda"
         element={
           <MainLayout title="Agenda" subtitle="Organização de compromissos e reuniões.">
-            <PlaceholderPage title="Agenda" description="A estrutura desta página está pronta para receber o módulo de agenda no futuro." />
+            <AgendaPage />
           </MainLayout>
         }
       />
 
-      <Route
-        path="/crm"
-        element={
-          <MainLayout title="CRM" subtitle="Centralize o relacionamento com os clientes.">
-            <PlaceholderPage title="CRM" description="A estrutura desta página está pronta para receber a gestão de relacionamento." />
-          </MainLayout>
-        }
-      />
+      <Route path="/crm" element={<CRMPage />} />
 
       <Route
         path="/financeiro"

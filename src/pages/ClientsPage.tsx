@@ -1,32 +1,18 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import ClientList from '../components/ClientList'
 import ClientModal from '../components/ClientModal'
+import DeleteClientModal from '../components/DeleteClientModal'
+import { useAppState } from '../contexts/AppStateContext'
 import type { Client, ClientFormValues } from '../types/client'
 
-const STORAGE_KEY = 'gcf-clients'
-
-const createClient = (values: ClientFormValues): Client => ({
-  id: crypto.randomUUID(),
-  ...values,
-})
-
 function ClientsPage() {
-  const [clients, setClients] = useState<Client[]>([])
+  const { clients, createClient, updateClient, deleteClient } = useAppState()
   const [searchTerm, setSearchTerm] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create')
   const [selectedClient, setSelectedClient] = useState<Client | undefined>()
-
-  useEffect(() => {
-    const savedClients = localStorage.getItem(STORAGE_KEY)
-    if (savedClients) {
-      setClients(JSON.parse(savedClients))
-    }
-  }, [])
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(clients))
-  }, [clients])
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [clientToDelete, setClientToDelete] = useState<string | null>(null)
 
   const handleCreate = () => {
     setModalMode('create')
@@ -42,17 +28,24 @@ function ClientsPage() {
 
   const handleSave = (values: ClientFormValues) => {
     if (modalMode === 'edit' && selectedClient) {
-      setClients((prev) =>
-        prev.map((client) => (client.id === selectedClient.id ? { ...client, ...values } : client)),
-      )
+      updateClient(selectedClient.id, values)
       return
     }
 
-    setClients((prev) => [createClient(values), ...prev])
+    createClient(values)
   }
 
   const handleDelete = (id: string) => {
-    setClients((prev) => prev.filter((client) => client.id !== id))
+    setClientToDelete(id)
+    setDeleteModalOpen(true)
+  }
+
+  const handleDeleteConfirm = () => {
+    if (clientToDelete) {
+      deleteClient(clientToDelete)
+      setDeleteModalOpen(false)
+      setClientToDelete(null)
+    }
   }
 
   const summary = useMemo(() => {
@@ -107,6 +100,14 @@ function ClientsPage() {
         initialValues={selectedClient}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
+      />
+      <DeleteClientModal 
+        isOpen={deleteModalOpen} 
+        onClose={() => {
+          setDeleteModalOpen(false)
+          setClientToDelete(null)
+        }} 
+        onConfirm={handleDeleteConfirm} 
       />
     </div>
   )
