@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage'
 import PlaceholderPage from './pages/PlaceholderPage'
 import CRMPage from './modules/crm/CRMPage'
 import AgendaPage from './pages/AgendaPage'
+import FinanceiroPage from './pages/FinanceiroPage'
 
 function App() {
   return (
@@ -45,13 +46,16 @@ function App() {
       <Route path="/crm" element={<CRMPage />} />
 
       <Route
-        path="/financeiro"
-        element={
-          <MainLayout title="Financeiro" subtitle="Controle financeiro e acompanhamento de contratos.">
-            <PlaceholderPage title="Financeiro" description="A estrutura desta página está pronta para receber as funcionalidades financeiras." />
-          </MainLayout>
-        }
-      />
+  path="/financeiro"
+  element={
+    <MainLayout 
+      title="Financeiro" 
+      subtitle="Visão estratégica dos resultados do GCF."
+    >
+      <FinanceiroPage />
+    </MainLayout>
+  }
+/>
 
       <Route
         path="/bpo"
