@@ -36,6 +36,54 @@ JSON.stringify(clientesBPO)
 
 
 
+function calcularStatus(tarefas:any[]){
+
+
+const total = tarefas.length
+
+const feitas = tarefas.filter(
+t=>t.feito
+).length
+
+
+
+if(feitas === 0){
+
+return {
+texto:"Aguardando documentos",
+cor:"🟡"
+}
+
+}
+
+
+
+if(feitas === total){
+
+return {
+texto:"Fechamento concluído",
+cor:"🟢"
+}
+
+}
+
+
+
+return {
+texto:"Em processamento",
+cor:"🔵"
+}
+
+
+}
+
+
+
+
+
+
+
+
 
 function adicionarCliente(){
 
@@ -54,9 +102,6 @@ nome:nomeCliente,
 
 competencia,
 
-status:"Aguardando documentos",
-
-cor:"🟡",
 
 tarefas:[
 
@@ -161,9 +206,11 @@ setClientesBPO(atualizado)
 
 
 
+
 return(
 
 <div>
+
 
 
 <section className="dashboard-header">
@@ -181,14 +228,14 @@ MÓDULO BPO
 
 <h1>
 
-Gestão BPO Clientes 📂
+Gestão Operacional BPO 📂
 
 </h1>
 
 
 <p>
 
-Controle de documentos, conciliação e fechamento mensal.
+Controle inteligente de fechamentos financeiros.
 
 </p>
 
@@ -218,18 +265,13 @@ onClick={()=>setMostrarCadastro(true)}
 
 
 
-
 {mostrarCadastro && (
 
 
 <section className="content-card">
 
 
-<h2>
-
-Novo Cliente BPO
-
-</h2>
+<h2>Novo Cliente</h2>
 
 
 
@@ -251,8 +293,6 @@ onChange={(e)=>setNomeCliente(e.target.value)}
 
 className="input"
 
-placeholder="Competência"
-
 value={competencia}
 
 onChange={(e)=>setCompetencia(e.target.value)}
@@ -269,7 +309,7 @@ onClick={adicionarCliente}
 
 >
 
-Salvar
+Salvar Cliente
 
 </button>
 
@@ -315,37 +355,6 @@ Operações cadastradas
 
 
 
-
-
-<div className="stat-card gold">
-
-
-<p>Pendentes</p>
-
-
-<strong>
-
-{
-clientesBPO.filter(
-c=>c.status==="Aguardando documentos"
-).length
-}
-
-</strong>
-
-
-<span>
-
-Acompanhamento
-
-</span>
-
-
-</div>
-
-
-
-
 </section>
 
 
@@ -362,20 +371,17 @@ Acompanhamento
 
 <h2>
 
-📂 Fechamentos Mensais
+📋 Controle de Fechamentos
 
 </h2>
 
 
 
 
+
 {clientesBPO.length===0 && (
 
-<p>
-
-Nenhum cliente cadastrado.
-
-</p>
+<p>Nenhum cliente cadastrado.</p>
 
 )}
 
@@ -384,8 +390,14 @@ Nenhum cliente cadastrado.
 
 
 
+{clientesBPO.map(cliente=>{
 
-{clientesBPO.map(cliente=>(
+
+const status = calcularStatus(cliente.tarefas)
+
+
+
+return(
 
 
 <div
@@ -397,12 +409,12 @@ key={cliente.id}
 >
 
 
+
 <span>
 
-{cliente.cor}
+{status.cor}
 
 </span>
-
 
 
 
@@ -425,7 +437,7 @@ Competência: {cliente.competencia}
 
 <strong>
 
-{cliente.status}
+{status.texto}
 
 </strong>
 
@@ -475,8 +487,11 @@ style={{cursor:"pointer"}}
 </div>
 
 
-))}
+)
 
+
+
+})}
 
 
 
@@ -484,10 +499,11 @@ style={{cursor:"pointer"}}
 
 
 
-
 </div>
 
+
 )
+
 
 }
 
