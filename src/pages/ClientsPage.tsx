@@ -1,14 +1,35 @@
 import { useEffect, useState } from "react"
 
-import StatCard from "../components/StatCard"
+
+function ClientsPage(){
 
 
-function DashboardPage(){
+const [clientes,setClientes] = useState<any[]>(()=>{
+
+const dados = localStorage.getItem("gfa-clientes")
+
+return dados ? JSON.parse(dados) : []
+
+})
 
 
-const [clientes,setClientes] = useState<any[]>([])
+const [cadastro,setCadastro] = useState(false)
 
-const [bpo,setBpo] = useState<any[]>([])
+const [clienteAberto,setClienteAberto] = useState<any>(null)
+
+
+
+const [form,setForm] = useState({
+
+empresa:"",
+responsavel:"",
+telefone:"",
+servico:"BPO Financeiro",
+status:"Ativo",
+valor:"",
+observacao:""
+
+})
 
 
 
@@ -16,67 +37,109 @@ const [bpo,setBpo] = useState<any[]>([])
 
 useEffect(()=>{
 
+localStorage.setItem(
+"gfa-clientes",
+JSON.stringify(clientes)
+)
 
-const dadosClientes = localStorage.getItem(
-"gfa-clientes"
+},[clientes])
+
+
+
+
+
+const servicos=[
+
+"BPO Financeiro",
+"Consultoria Empresarial",
+"Mentoria Individual",
+"Consultoria Financeira",
+"Diagnóstico Financeiro",
+"Outros"
+
+]
+
+
+
+
+
+
+function salvarCliente(){
+
+
+if(!form.empresa){
+
+return
+
+}
+
+
+const novo={
+
+id:Date.now(),
+
+...form,
+
+criado:new Date().toLocaleDateString()
+
+}
+
+
+setClientes([...clientes,novo])
+
+
+setForm({
+
+empresa:"",
+responsavel:"",
+telefone:"",
+servico:"BPO Financeiro",
+status:"Ativo",
+valor:"",
+observacao:""
+
+})
+
+
+setCadastro(false)
+
+
+}
+
+
+
+
+
+
+
+
+function excluirCliente(id:number){
+
+
+if(!confirm("Deseja excluir este cliente?")){
+
+return
+
+}
+
+
+
+setClientes(
+
+clientes.filter(
+
+cliente=>cliente.id!==id
+
+)
+
 )
 
 
-const dadosBpo = localStorage.getItem(
-"gfa-bpo-clientes"
-)
-
-
-
-if(dadosClientes){
-
-setClientes(JSON.parse(dadosClientes))
-
-}
-
-
-if(dadosBpo){
-
-setBpo(JSON.parse(dadosBpo))
-
-}
-
-
-},[])
-
-
-
-
-
-
-
-
-function progresso(tarefas:any[]=[]){
-
-
-if(tarefas.length===0){
-
-return 0
-
-}
-
-
-const feitas=tarefas.filter(
-
-t=>t.feito
-
-).length
-
-
-
-return Math.round(
-
-(feitas/tarefas.length)*100
-
-)
+setClienteAberto(null)
 
 
 }
+
 
 
 
@@ -87,83 +150,18 @@ return Math.round(
 
 const receita = clientes.reduce(
 
-(total,c)=>
-
-total + Number(c.valor || 0)
+(total,c)=> total + Number(c.valor||0)
 
 ,0)
 
 
 
 
+const clientesOrdenados=[...clientes].sort(
 
-const ativos = clientes.filter(
+(a,b)=>a.empresa.localeCompare(b.empresa)
 
-c=>c.status==="Ativo"
-
-).length
-
-
-
-
-
-
-const clientesBpo = clientes.filter(
-
-c=>c.servico==="BPO Financeiro"
-
-).length
-
-
-
-
-
-
-const consultorias = clientes.filter(
-
-c=>c.servico.includes("Consultoria")
-
-).length
-
-
-
-
-
-
-const mentorias = clientes.filter(
-
-c=>c.servico==="Mentoria Individual"
-
-).length
-
-
-
-
-
-
-
-const fechados = bpo.filter(
-
-c=>progresso(c.tarefas)===100
-
-).length
-
-
-
-
-
-
-const andamento = bpo.filter(c=>{
-
-
-const p=progresso(c.tarefas)
-
-
-return p>0 && p<100
-
-
-}).length
-
+)
 
 
 
@@ -175,7 +173,6 @@ return p>0 && p<100
 return(
 
 <div>
-
 
 
 
@@ -195,28 +192,32 @@ color:"white"
 >
 
 
-<p>
-
-SISTEMA GFA
-
-</p>
-
-
-
 <h1>
 
-Dashboard Executivo 📊
+Clientes 👥
 
 </h1>
 
 
-
 <p>
 
-Visão geral da operação financeira e clientes.
+Base central do Sistema GFA.
 
 </p>
 
+
+
+<button
+
+className="primary-button"
+
+onClick={()=>setCadastro(true)}
+
+>
+
++ Novo Cliente
+
+</button>
 
 
 </section>
@@ -228,34 +229,27 @@ Visão geral da operação financeira e clientes.
 
 
 
-
-
 <section className="stats-grid">
 
 
+<div className="stat-card">
 
+<p>Total Clientes</p>
 
-<StatCard
+<strong>{clientes.length}</strong>
 
-title="Clientes"
-
-value={String(clientes.length)}
-
-detail="Carteira total"
-
-accent="navy"
-
-/>
+</div>
 
 
 
 
+<div className="stat-card gold">
 
-<StatCard
+<p>Receita Mensal</p>
 
-title="Receita Mensal"
+<strong>
 
-value={
+{
 
 receita.toLocaleString(
 
@@ -273,9 +267,136 @@ currency:"BRL"
 
 }
 
-detail="Contratos ativos"
+</strong>
 
-accent="gold"
+</div>
+
+
+
+
+<div className="stat-card">
+
+<p>Ativos</p>
+
+<strong>
+
+{
+
+clientes.filter(
+
+c=>c.status==="Ativo"
+
+).length
+
+}
+
+</strong>
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+
+{cadastro && (
+
+
+
+<section
+
+className="content-card"
+
+style={{maxWidth:"850px"}}
+
+>
+
+
+
+<h2>
+
+Novo Cliente
+
+</h2>
+
+
+
+
+<div
+
+style={{
+
+display:"grid",
+
+gridTemplateColumns:"1fr 1fr",
+
+gap:"14px"
+
+}}
+
+>
+
+
+
+
+<input
+
+className="input"
+
+placeholder="Cliente"
+
+value={form.empresa}
+
+onChange={e=>
+
+setForm({...form,empresa:e.target.value})
+
+}
+
+/>
+
+
+
+
+
+<input
+
+className="input"
+
+placeholder="Responsável"
+
+value={form.responsavel}
+
+onChange={e=>
+
+setForm({...form,responsavel:e.target.value})
+
+}
+
+/>
+
+
+
+
+
+<input
+
+className="input"
+
+placeholder="Telefone"
+
+value={form.telefone}
+
+onChange={e=>
+
+setForm({...form,telefone:e.target.value})
+
+}
 
 />
 
@@ -284,16 +405,80 @@ accent="gold"
 
 
 
+<select
 
-<StatCard
+className="input"
 
-title="Clientes Ativos"
+value={form.servico}
 
-value={String(ativos)}
+onChange={e=>
 
-detail="Relacionamentos ativos"
+setForm({...form,servico:e.target.value})
 
-accent="navy"
+}
+
+>
+
+
+{servicos.map(s=>(
+
+<option key={s}>{s}</option>
+
+))}
+
+
+</select>
+
+
+
+
+
+<select
+
+className="input"
+
+value={form.status}
+
+onChange={e=>
+
+setForm({...form,status:e.target.value})
+
+}
+
+>
+
+
+<option>Ativo</option>
+
+<option>Proposta</option>
+
+<option>Implantação</option>
+
+<option>Pausado</option>
+
+<option>Encerrado</option>
+
+
+</select>
+
+
+
+
+
+
+<input
+
+className="input"
+
+placeholder="Valor mensal"
+
+value={form.valor}
+
+onChange={e=>
+
+setForm({...form,valor:e.target.value})
+
+}
 
 />
 
@@ -301,24 +486,78 @@ accent="navy"
 
 
 
+<textarea
 
+className="input"
 
-<StatCard
+placeholder="Observações"
 
-title="BPO"
+value={form.observacao}
 
-value={String(clientesBpo)}
+style={{
 
-detail="Clientes financeiros"
+gridColumn:"1/3",
 
-accent="gold"
+height:"80px"
+
+}}
+
+onChange={e=>
+
+setForm({...form,observacao:e.target.value})
+
+}
 
 />
+
+
+</div>
+
+
+
+
+
+<br/>
+
+
+
+
+<button
+
+className="primary-button"
+
+onClick={salvarCliente}
+
+>
+
+Salvar
+
+</button>
+
+
+
+
+<button
+
+className="primary-button"
+
+style={{marginLeft:10}}
+
+onClick={()=>setCadastro(false)}
+
+>
+
+Cancelar
+
+</button>
+
 
 
 
 </section>
 
+
+)}
 
 
 
@@ -332,64 +571,110 @@ accent="gold"
 
 <h2>
 
-📂 Distribuição da Carteira
+📋 Meus Clientes
 
 </h2>
 
 
 
 
-<div className="action-grid">
+
+{clientesOrdenados.map(cliente=>(
 
 
 
-<div className="mini-card">
+<div
+
+className="cliente-alerta"
+
+key={cliente.id}
+
+>
 
 
-<h3>BPO Financeiro</h3>
+
+<div
+
+style={{
+
+display:"grid",
+
+gridTemplateColumns:"2fr 2fr 1fr 120px",
+
+width:"100%",
+
+alignItems:"center"
+
+}}
+
+>
 
 
-<p>{clientesBpo} clientes</p>
+
+<strong>
+
+🏢 {cliente.empresa}
+
+</strong>
+
+
+
+
+<span>
+
+{cliente.servico}
+
+</span>
+
+
+
+
+
+<span>
+
+{
+
+cliente.status==="Ativo"
+
+?
+
+"🟢 Ativo"
+
+:
+
+"🟡 "+cliente.status
+
+}
+
+</span>
+
+
+
+
+
+
+<button
+
+className="primary-button"
+
+onClick={()=>setClienteAberto(cliente)}
+
+>
+
+Detalhes
+
+</button>
+
+
 
 
 </div>
 
 
-
-
-
-
-<div className="mini-card">
-
-
-<h3>Consultorias</h3>
-
-
-<p>{consultorias} clientes</p>
-
-
 </div>
 
 
-
-
-
-
-<div className="mini-card">
-
-
-<h3>Mentorias</h3>
-
-
-<p>{mentorias} clientes</p>
-
-
-</div>
-
-
-
-
-</div>
+))}
 
 
 
@@ -402,6 +687,9 @@ accent="gold"
 
 
 
+
+
+{clienteAberto && (
 
 
 
@@ -410,54 +698,64 @@ accent="gold"
 
 <h2>
 
-⚙ Operação BPO
+{clienteAberto.empresa}
 
 </h2>
 
 
 
+<p>👤 {clienteAberto.responsavel}</p>
 
-<div className="action-grid">
+<p>📱 {clienteAberto.telefone}</p>
 
+<p>📂 {clienteAberto.servico}</p>
 
+<p>💰 R$ {clienteAberto.valor}</p>
 
-<div className="mini-card">
-
-
-<h3>🔵 Em execução</h3>
-
-
-<p>{andamento} processos</p>
-
-
-</div>
+<p>📝 {clienteAberto.observacao}</p>
 
 
 
 
 
+<button
 
-<div className="mini-card">
+className="primary-button"
 
+onClick={()=>setClienteAberto(null)}
 
-<h3>🟢 Finalizados</h3>
+>
 
+Fechar
 
-<p>{fechados} fechamentos</p>
-
-
-</div>
-
-
+</button>
 
 
-</div>
+
+
+
+
+<button
+
+className="primary-button"
+
+style={{marginLeft:10}}
+
+onClick={()=>excluirCliente(clienteAberto.id)}
+
+>
+
+Excluir Cliente
+
+</button>
 
 
 
 
 </section>
 
+
+)}
 
 
 
@@ -467,8 +765,8 @@ accent="gold"
 
 )
 
+
 }
 
 
-
-export default DashboardPage
+export default ClientsPage

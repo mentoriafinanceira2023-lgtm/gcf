@@ -1,26 +1,61 @@
 import { useEffect, useState } from "react"
 
-import StatCard from "../components/StatCard"
+
+function BPOPage(){
 
 
-function DashboardPage(){
+const [clientes,setClientes] = useState<any[]>([])
+
+const [operacoes,setOperacoes] = useState<any[]>(()=>{
+
+const dados = localStorage.getItem("gfa-bpo-operacoes")
+
+return dados ? JSON.parse(dados) : []
+
+})
 
 
-const [clientesBPO,setClientesBPO] = useState<any[]>([])
+const [competencia,setCompetencia] = useState("Julho/2026")
+
+const [aberto,setAberto] = useState<number | null>(null)
+
+
+
 
 
 
 useEffect(()=>{
 
 
-const dados = localStorage.getItem("gfa-bpo-clientes")
+const dados = localStorage.getItem("gfa-clientes")
 
 
 if(dados){
 
-setClientesBPO(JSON.parse(dados))
+
+const lista = JSON.parse(dados)
+
+
+setClientes(
+
+lista.filter(
+
+(c:any)=>
+
+c.servico==="BPO Financeiro"
+
+&&
+
+c.status==="Ativo"
+
+
+)
+
+)
+
 
 }
+
 
 
 },[])
@@ -31,7 +66,30 @@ setClientesBPO(JSON.parse(dados))
 
 
 
-function progresso(tarefas:any[] = []){
+
+useEffect(()=>{
+
+
+localStorage.setItem(
+
+"gfa-bpo-operacoes",
+
+JSON.stringify(operacoes)
+
+)
+
+
+},[operacoes])
+
+
+
+
+
+
+
+
+
+function progresso(tarefas:any[]=[]){
 
 
 if(tarefas.length===0){
@@ -41,8 +99,10 @@ return 0
 }
 
 
-const feitas = tarefas.filter(
+const feitas=tarefas.filter(
+
 t=>t.feito
+
 ).length
 
 
@@ -62,59 +122,194 @@ return Math.round(
 
 
 
-const totalClientes = clientesBPO.length
+
+function iniciarFechamento(cliente:any){
 
 
 
-const finalizados = clientesBPO.filter(
+const existe = operacoes.some(
 
-cliente=>progresso(cliente.tarefas)===100
+op=>
 
-).length
+op.clienteId===cliente.id
 
+&&
 
-
-
-
-const andamento = clientesBPO.filter(cliente=>{
+op.competencia===competencia
 
 
-const pct = progresso(cliente.tarefas)
-
-
-return pct>0 && pct<100
-
-
-}).length
+)
 
 
 
+if(existe){
 
+return
 
-const pendentes = clientesBPO.filter(
-
-cliente=>progresso(cliente.tarefas)===0
-
-).length
+}
 
 
 
 
+const nova={
 
 
-const produtividade =
+id:Date.now(),
 
-totalClientes===0
 
-?
+clienteId:cliente.id,
 
-0
 
-:
+nome:cliente.empresa,
 
-Math.round(
 
-(finalizados/totalClientes)*100
+competencia,
+
+
+observacao:"",
+
+
+
+tarefas:[
+
+
+{
+nome:"Receber extratos bancários",
+feito:false
+},
+
+
+{
+nome:"Receber faturas cartões",
+feito:false
+},
+
+
+{
+nome:"Importação financeira",
+feito:false
+},
+
+
+{
+nome:"Conciliação bancária",
+feito:false
+},
+
+
+{
+nome:"DRE atualizado",
+feito:false
+},
+
+
+{
+nome:"Relatório enviado",
+feito:false
+}
+
+
+]
+
+
+}
+
+
+
+setOperacoes([
+
+...operacoes,
+
+nova
+
+])
+
+
+}
+
+
+
+
+
+
+
+
+
+
+function alterarChecklist(id:number,tarefa:string){
+
+
+
+setOperacoes(
+
+
+operacoes.map(op=>{
+
+
+if(op.id===id){
+
+
+
+return{
+
+
+...op,
+
+
+tarefas:op.tarefas.map((t:any)=>{
+
+
+if(t.nome===tarefa){
+
+
+return{
+
+...t,
+
+feito:!t.feito
+
+}
+
+
+}
+
+
+return t
+
+
+})
+
+
+}
+
+
+}
+
+
+
+return op
+
+
+})
+
+
+)
+
+
+}
+
+
+
+
+
+
+
+
+
+
+const operacoesMes = operacoes.filter(
+
+op=>op.competencia===competencia
 
 )
 
@@ -134,230 +329,35 @@ return(
 
 
 
-<section className="dashboard-header">
+<section
 
+className="content-card"
 
-<div>
+style={{
 
+background:"#0b1f3a",
 
-<p className="tag">
+color:"white"
 
-SISTEMA GFA
+}}
 
-</p>
+>
 
 
 
 <h1>
 
-Bom dia, Jefferson 👋
+BPO Financeiro ⚙️
 
 </h1>
 
 
 
-
 <p>
 
-Central executiva de gestão financeira e operações BPO.
+Gestão dos fechamentos mensais dos clientes.
 
 </p>
-
-
-
-</div>
-
-
-</section>
-
-
-
-
-
-
-
-
-
-<section className="stats-grid">
-
-
-
-<StatCard
-
-title="Clientes BPO"
-
-value={String(totalClientes)}
-
-detail="Operações cadastradas"
-
-accent="navy"
-
-/>
-
-
-
-
-
-
-<StatCard
-
-title="Em execução"
-
-value={String(andamento)}
-
-detail="Fechamentos em andamento"
-
-accent="gold"
-
-/>
-
-
-
-
-
-
-
-<StatCard
-
-title="Finalizados"
-
-value={String(finalizados)}
-
-detail="Fechamentos concluídos"
-
-accent="navy"
-
-/>
-
-
-
-
-
-
-
-<StatCard
-
-title="Produtividade"
-
-value={`${produtividade}%`}
-
-detail="Taxa de fechamento mensal"
-
-accent="gold"
-
-/>
-
-
-
-</section>
-
-
-
-
-
-
-
-
-
-<section className="content-card">
-
-
-<h2>
-
-🚀 Central Operacional GFA
-
-</h2>
-
-
-
-<p>
-
-Resumo automático baseado nos processos BPO cadastrados.
-
-</p>
-
-
-
-
-<div className="action-grid">
-
-
-
-<div className="mini-card">
-
-
-<h3>
-
-🟡 Pendentes
-
-</h3>
-
-
-<p>
-
-{pendentes} clientes aguardando início.
-
-</p>
-
-
-
-</div>
-
-
-
-
-
-
-<div className="mini-card">
-
-
-<h3>
-
-🔵 Em andamento
-
-</h3>
-
-
-<p>
-
-{andamento} processos em execução.
-
-</p>
-
-
-
-</div>
-
-
-
-
-
-
-
-<div className="mini-card">
-
-
-<h3>
-
-🟢 Concluídos
-
-</h3>
-
-
-<p>
-
-{finalizados} fechamentos entregues.
-
-</p>
-
-
-
-</div>
-
-
-
-
-</div>
 
 
 
@@ -377,7 +377,54 @@ Resumo automático baseado nos processos BPO cadastrados.
 
 <h2>
 
-⚠️ Próximas ações BPO
+📅 Competência
+
+</h2>
+
+
+
+<select
+
+className="input"
+
+value={competencia}
+
+onChange={e=>setCompetencia(e.target.value)}
+
+>
+
+
+<option>Julho/2026</option>
+
+<option>Agosto/2026</option>
+
+<option>Setembro/2026</option>
+
+<option>Outubro/2026</option>
+
+
+</select>
+
+
+
+</section>
+
+
+
+
+
+
+
+
+
+
+
+<section className="content-card">
+
+
+<h2>
+
+Clientes disponíveis BPO
 
 </h2>
 
@@ -385,15 +432,7 @@ Resumo automático baseado nos processos BPO cadastrados.
 
 
 
-{
-
-clientesBPO
-
-.filter(cliente=>progresso(cliente.tarefas)<100)
-
-.slice(0,5)
-
-.map(cliente=>(
+{clientes.map(cliente=>(
 
 
 
@@ -407,35 +446,43 @@ key={cliente.id}
 
 
 
-<span>
+<div
 
-⚠️
+style={{
 
-</span>
+display:"flex",
 
+justifyContent:"space-between",
 
+width:"100%"
 
-<div>
+}}
+
+>
 
 
 
 <strong>
 
-{cliente.nome}
+🏢 {cliente.empresa}
 
 </strong>
 
 
 
-<p>
 
-Progresso atual:
+<button
 
-{" "}
+className="primary-button"
 
-{progresso(cliente.tarefas)}%
+onClick={()=>iniciarFechamento(cliente)}
 
-</p>
+>
+
+Iniciar fechamento
+
+</button>
+
 
 
 
@@ -446,23 +493,7 @@ Progresso atual:
 </div>
 
 
-
-))
-
-}
-
-
-
-
-{clientesBPO.length===0 && (
-
-<p>
-
-Nenhuma operação BPO cadastrada.
-
-</p>
-
-)}
+))}
 
 
 
@@ -473,8 +504,189 @@ Nenhuma operação BPO cadastrada.
 
 
 
+
+
+
+<section className="content-card">
+
+
+<h2>
+
+📂 Fechamentos {competencia}
+
+</h2>
+
+
+
+
+
+{operacoesMes.map(op=>{
+
+
+const pct=progresso(op.tarefas)
+
+
+
+return(
+
+
+
+<div
+
+className="cliente-alerta"
+
+key={op.id}
+
+>
+
+
+
+<div style={{width:"100%"}}>
+
+
+
+<h3>
+
+🏢 {op.nome}
+
+</h3>
+
+
+
+
+<p>
+
+Progresso: {pct}%
+
+</p>
+
+
+
+
+<progress
+
+value={pct}
+
+max="100"
+
+style={{width:"100%"}}
+
+/>
+
+
+
+
+
+
+<button
+
+className="primary-button"
+
+onClick={()=>setAberto(
+
+aberto===op.id
+
+?
+
+null
+
+:
+
+op.id
+
+)}
+
+>
+
+Processo
+
+</button>
+
+
+
+
+
+
+
+{aberto===op.id && (
+
+
+<div>
+
+
+<br/>
+
+
+
+
+{op.tarefas.map((t:any)=>(
+
+
+<p
+
+key={t.nome}
+
+style={{cursor:"pointer"}}
+
+onClick={()=>alterarChecklist(
+
+op.id,
+
+t.nome
+
+)}
+
+>
+
+
+{t.feito?"✅":"⬜"}
+
+{" "}
+
+{t.nome}
+
+
+
+</p>
+
+
+))}
+
+
+
 </div>
 
+
+)}
+
+
+
+
+</div>
+
+
+
+</div>
+
+
+
+)
+
+
+
+})}
+
+
+
+
+
+</section>
+
+
+
+
+
+</div>
 
 )
 
@@ -483,4 +695,4 @@ Nenhuma operação BPO cadastrada.
 
 
 
-export default DashboardPage
+export default BPOPage
