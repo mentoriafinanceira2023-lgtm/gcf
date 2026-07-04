@@ -4,21 +4,21 @@ import { useEffect, useState } from "react"
 function BPOPage(){
 
 
-const [clientes,setClientes] = useState<any[]>([])
+const [clientes,setClientes]=useState<any[]>([])
 
 
-const [operacoes,setOperacoes] = useState<any[]>(()=>{
+const [operacoes,setOperacoes]=useState<any[]>(()=>{
 
-const dados = localStorage.getItem("gfa-bpo-operacoes")
+const dados=localStorage.getItem("gfa-bpo-operacoes")
 
 return dados ? JSON.parse(dados) : []
 
 })
 
 
-const [competencia,setCompetencia] = useState("Julho/2026")
+const [competencia,setCompetencia]=useState("Julho/2026")
 
-const [processo,setProcesso] = useState<number|null>(null)
+const [aberto,setAberto]=useState<number|null>(null)
 
 
 
@@ -29,19 +29,16 @@ const [processo,setProcesso] = useState<number|null>(null)
 useEffect(()=>{
 
 
-function carregarClientes(){
-
-
-const dados = localStorage.getItem("gfa-clientes")
+const dados=localStorage.getItem("gfa-clientes")
 
 
 if(dados){
 
 
-const todos = JSON.parse(dados)
+const todos=JSON.parse(dados)
 
 
-const somenteBpo = todos.filter(
+const bpos=todos.filter(
 
 (c:any)=>
 
@@ -54,39 +51,27 @@ c.status==="Ativo"
 )
 
 
-setClientes(somenteBpo)
+setClientes(bpos)
 
 
-}
+// remove operações sem cliente existente
 
+setOperacoes(
 
-}
+ops=>ops.filter(
 
+op=>
 
+bpos.some(
 
-carregarClientes()
-
-
-
-window.addEventListener(
-
-"storage",
-
-carregarClientes
+(c:any)=>c.id===op.clienteId
 
 )
 
-
-
-return ()=>{
-
-window.removeEventListener(
-
-"storage",
-
-carregarClientes
+)
 
 )
+
 
 }
 
@@ -99,8 +84,7 @@ carregarClientes
 
 
 
-
-// SALVA OPERAÇÕES
+// SALVA PROCESSOS
 
 useEffect(()=>{
 
@@ -124,18 +108,17 @@ JSON.stringify(operacoes)
 
 
 
+function progresso(tarefas:any[]=[]){
 
-function progresso(tarefas:any[]){
 
-
-if(!tarefas){
+if(tarefas.length===0){
 
 return 0
 
 }
 
 
-const feitas = tarefas.filter(
+const feitas=tarefas.filter(
 
 t=>t.feito
 
@@ -160,11 +143,11 @@ return Math.round(
 
 
 
-function criarProcesso(cliente:any){
+function criarFechamento(cliente:any){
 
 
 
-const existe = operacoes.find(
+const existe=operacoes.some(
 
 op=>
 
@@ -189,68 +172,48 @@ return
 
 
 
-
-
 const novo={
 
 
 id:Date.now(),
 
-
 clienteId:cliente.id,
-
 
 cliente:cliente.empresa,
 
-
 competencia,
-
 
 tarefas:[
 
 
 {
-
-nome:"Receber documentos",
-
+nome:"Receber extratos bancários",
 feito:false
-
 },
 
-
 {
-
-nome:"Lançamentos financeiros",
-
+nome:"Receber faturas cartões",
 feito:false
-
 },
 
-
 {
-
-nome:"Conciliação bancária",
-
+nome:"Importar lançamentos",
 feito:false
-
 },
 
-
 {
-
-nome:"DRE atualizado",
-
+nome:"Conciliar movimentações",
 feito:false
-
 },
 
+{
+nome:"Atualizar DRE",
+feito:false
+},
 
 {
-
-nome:"Reunião fechamento",
-
+nome:"Enviar relatório ao cliente",
 feito:false
-
 }
 
 
@@ -258,8 +221,6 @@ feito:false
 
 
 }
-
-
 
 
 
@@ -272,7 +233,6 @@ novo
 ])
 
 
-
 }
 
 
@@ -283,8 +243,7 @@ novo
 
 
 
-function marcar(id:number,item:string){
-
+function alterar(id:number,item:string){
 
 
 setOperacoes(
@@ -326,7 +285,6 @@ t
 }
 
 
-
 })
 
 
@@ -342,14 +300,27 @@ t
 
 
 
-
-const operacoesMes = operacoes.filter(
+const lista=operacoes.filter(
 
 op=>op.competencia===competencia
 
 )
 
 
+
+const andamento=lista.filter(
+
+op=>progresso(op.tarefas)<100
+
+).length
+
+
+
+const fechados=lista.filter(
+
+op=>progresso(op.tarefas)===100
+
+).length
 
 
 
@@ -360,8 +331,6 @@ op=>op.competencia===competencia
 return(
 
 <div>
-
-
 
 
 
@@ -389,15 +358,12 @@ BPO Financeiro 📂
 
 <p>
 
-Operação integrada ao cadastro de clientes.
+Gestão operacional integrada aos clientes GFA.
 
 </p>
 
 
-
 </section>
-
-
 
 
 
@@ -450,13 +416,55 @@ onChange={e=>setCompetencia(e.target.value)}
 
 
 
+<section className="stats-grid">
+
+
+<div className="stat-card">
+
+<p>Clientes BPO</p>
+
+<strong>{clientes.length}</strong>
+
+</div>
+
+
+
+<div className="stat-card gold">
+
+<p>Em andamento</p>
+
+<strong>{andamento}</strong>
+
+</div>
+
+
+
+<div className="stat-card">
+
+<p>Fechados</p>
+
+<strong>{fechados}</strong>
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+
+
 
 <section className="content-card">
 
 
 <h2>
 
-Clientes BPO disponíveis
+🏢 Clientes para fechamento
 
 </h2>
 
@@ -466,7 +474,6 @@ Clientes BPO disponíveis
 {clientes.map(cliente=>(
 
 
-
 <div
 
 className="cliente-alerta"
@@ -474,7 +481,6 @@ className="cliente-alerta"
 key={cliente.id}
 
 >
-
 
 
 <div
@@ -492,10 +498,9 @@ width:"100%"
 >
 
 
-
 <strong>
 
-🏢 {cliente.empresa}
+{cliente.empresa}
 
 </strong>
 
@@ -506,14 +511,13 @@ width:"100%"
 
 className="primary-button"
 
-onClick={()=>criarProcesso(cliente)}
+onClick={()=>criarFechamento(cliente)}
 
 >
 
 Criar fechamento
 
 </button>
-
 
 
 
@@ -526,10 +530,7 @@ Criar fechamento
 ))}
 
 
-
 </section>
-
-
 
 
 
@@ -544,7 +545,7 @@ Criar fechamento
 
 <h2>
 
-📂 Operações {competencia}
+📂 Fechamentos {competencia}
 
 </h2>
 
@@ -552,9 +553,7 @@ Criar fechamento
 
 
 
-
-{operacoesMes.map(op=>(
-
+{lista.map(op=>(
 
 
 <div
@@ -567,7 +566,6 @@ key={op.id}
 
 
 <div style={{width:"100%"}}>
-
 
 
 <h3>
@@ -603,17 +601,9 @@ style={{width:"100%"}}
 
 className="primary-button"
 
-onClick={()=>setProcesso(
+onClick={()=>setAberto(
 
-processo===op.id
-
-?
-
-null
-
-:
-
-op.id
+aberto===op.id?null:op.id
 
 )}
 
@@ -627,30 +617,26 @@ Abrir Processo
 
 
 
-
-{processo===op.id && (
-
+{aberto===op.id && (
 
 <div>
 
 
-{
-
-op.tarefas.map((t:any)=>(
+{op.tarefas.map((t:any)=>(
 
 
 <p
 
 key={t.nome}
 
-onClick={()=>marcar(op.id,t.nome)}
-
 style={{cursor:"pointer"}}
+
+onClick={()=>alterar(op.id,t.nome)}
 
 >
 
 
-{t.feito ? "✅":"⬜"}
+{t.feito?"✅":"⬜"}
 
 {" "}
 
@@ -660,10 +646,7 @@ style={{cursor:"pointer"}}
 </p>
 
 
-))
-
-
-}
+))}
 
 
 </div>
@@ -682,20 +665,17 @@ style={{cursor:"pointer"}}
 ))}
 
 
-
-
 </section>
-
 
 
 
 </div>
 
+
 )
 
 
 }
-
 
 
 export default BPOPage
