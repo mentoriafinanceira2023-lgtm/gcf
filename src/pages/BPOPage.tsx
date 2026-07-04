@@ -1,51 +1,98 @@
-const clientesBPO = [
-
-  {
-    nome: "VIP Podas",
-    competencia: "Julho/2026",
-    status: "Aguardando documentos",
-    cor: "🟡",
-    tarefas: [
-      { nome: "Extratos recebidos", feito: false },
-      { nome: "Faturas recebidas", feito: false },
-      { nome: "Conciliação realizada", feito: false },
-      { nome: "DRE fechado", feito: false },
-      { nome: "Relatório enviado", feito: false },
-    ],
-  },
-
-  {
-    nome: "Salão Suellen",
-    competencia: "Julho/2026",
-    status: "Em processamento",
-    cor: "🔵",
-    tarefas: [
-      { nome: "Extratos recebidos", feito: true },
-      { nome: "Faturas recebidas", feito: true },
-      { nome: "Conciliação realizada", feito: false },
-      { nome: "DRE fechado", feito: false },
-      { nome: "Relatório enviado", feito: false },
-    ],
-  },
-
-  {
-    nome: "Farmácia Karina",
-    competencia: "Julho/2026",
-    status: "Fechado",
-    cor: "🟢",
-    tarefas: [
-      { nome: "Extratos recebidos", feito: true },
-      { nome: "Faturas recebidas", feito: true },
-      { nome: "Conciliação realizada", feito: true },
-      { nome: "DRE fechado", feito: true },
-      { nome: "Relatório enviado", feito: true },
-    ],
-  },
-
-]
+import { useState } from "react"
 
 
 function BPOPage() {
+
+
+const [mostrarCadastro, setMostrarCadastro] = useState(false)
+
+const [nomeCliente, setNomeCliente] = useState("")
+
+const [competencia, setCompetencia] = useState("Julho/2026")
+
+
+const [clientesBPO, setClientesBPO] = useState([
+
+{
+nome: "VIP Podas",
+competencia: "Julho/2026",
+status: "Aguardando documentos",
+cor:"🟡",
+tarefas:[
+{nome:"Extratos recebidos", feito:false},
+{nome:"Faturas recebidas", feito:false},
+{nome:"Conciliação realizada", feito:false},
+{nome:"DRE fechado", feito:false},
+{nome:"Relatório enviado", feito:false},
+]
+},
+
+{
+nome:"Salão Suellen",
+competencia:"Julho/2026",
+status:"Em processamento",
+cor:"🔵",
+tarefas:[
+{nome:"Extratos recebidos", feito:true},
+{nome:"Faturas recebidas", feito:true},
+{nome:"Conciliação realizada", feito:false},
+{nome:"DRE fechado", feito:false},
+{nome:"Relatório enviado", feito:false},
+]
+}
+
+])
+
+
+
+
+
+function adicionarCliente(){
+
+
+if(nomeCliente.trim() === ""){
+return
+}
+
+
+const novoCliente = {
+
+nome:nomeCliente,
+
+competencia:competencia,
+
+status:"Aguardando documentos",
+
+cor:"🟡",
+
+tarefas:[
+
+{nome:"Extratos recebidos", feito:false},
+
+{nome:"Faturas recebidas", feito:false},
+
+{nome:"Conciliação realizada", feito:false},
+
+{nome:"DRE fechado", feito:false},
+
+{nome:"Relatório enviado", feito:false}
+
+]
+
+}
+
+
+setClientesBPO([...clientesBPO, novoCliente])
+
+setNomeCliente("")
+
+setMostrarCadastro(false)
+
+
+}
+
+
+
 
 
 return (
@@ -53,7 +100,9 @@ return (
 <div>
 
 
+
 <section className="dashboard-header">
+
 
 <div>
 
@@ -61,23 +110,95 @@ return (
 MÓDULO BPO
 </p>
 
+
 <h1>
 Gestão BPO Clientes 📂
 </h1>
+
 
 <p>
 Controle mensal de documentos, conciliações e fechamentos.
 </p>
 
+
 </div>
 
 
-<button className="primary-button">
+
+<button 
+className="primary-button"
+onClick={()=>setMostrarCadastro(true)}
+>
+
 + Novo Cliente BPO
+
 </button>
 
 
 </section>
+
+
+
+
+
+{mostrarCadastro && (
+
+
+<section className="content-card">
+
+
+<h2>
+➕ Novo Cliente BPO
+</h2>
+
+
+
+<input
+
+placeholder="Nome do cliente"
+
+value={nomeCliente}
+
+onChange={(e)=>setNomeCliente(e.target.value)}
+
+className="input"
+
+/>
+
+
+
+<input
+
+placeholder="Competência"
+
+value={competencia}
+
+onChange={(e)=>setCompetencia(e.target.value)}
+
+className="input"
+
+/>
+
+
+
+<button
+
+className="primary-button"
+
+onClick={adicionarCliente}
+
+>
+
+Salvar Cliente
+
+</button>
+
+
+</section>
+
+
+)}
+
 
 
 
@@ -102,10 +223,10 @@ Controle mensal de documentos, conciliações e fechamentos.
 <p>Aguardando</p>
 
 <strong>
-1
+{clientesBPO.filter(c=>c.status==="Aguardando documentos").length}
 </strong>
 
-<span>Falta documentação</span>
+<span>Pendências</span>
 
 </div>
 
@@ -115,7 +236,7 @@ Controle mensal de documentos, conciliações e fechamentos.
 <p>Processando</p>
 
 <strong>
-1
+{clientesBPO.filter(c=>c.status==="Em processamento").length}
 </strong>
 
 <span>Em fechamento</span>
@@ -128,15 +249,16 @@ Controle mensal de documentos, conciliações e fechamentos.
 <p>Finalizados</p>
 
 <strong>
-1
+0
 </strong>
 
-<span>Mês concluído</span>
+<span>Relatórios enviados</span>
 
 </div>
 
 
 </section>
+
 
 
 
@@ -151,16 +273,18 @@ Controle mensal de documentos, conciliações e fechamentos.
 
 
 <p>
-Acompanhamento dos clientes ativos.
+Clientes em acompanhamento.
 </p>
-
 
 
 
 {clientesBPO.map((cliente)=>(
 
 
-<div className="cliente-alerta" key={cliente.nome}>
+<div 
+className="cliente-alerta"
+key={cliente.nome}
+>
 
 
 <span>
@@ -168,7 +292,7 @@ Acompanhamento dos clientes ativos.
 </span>
 
 
-<div style={{width:"100%"}}>
+<div>
 
 
 <h3>
@@ -186,16 +310,15 @@ Status: {cliente.status}
 </strong>
 
 
-
-<div style={{marginTop:"15px"}}>
-
-
-{cliente.tarefas.map((item)=>(
+<br/><br/>
 
 
-<p key={item.nome}>
+{cliente.tarefas.map((tarefa)=>(
 
-{item.feito ? "✅" : "⬜"} {item.nome}
+
+<p key={tarefa.nome}>
+
+{tarefa.feito ? "✅":"⬜"} {tarefa.nome}
 
 </p>
 
@@ -203,14 +326,12 @@ Status: {cliente.status}
 ))}
 
 
-</div>
-
-
 
 </div>
 
 
 </div>
+
 
 
 ))}
@@ -221,13 +342,14 @@ Status: {cliente.status}
 </section>
 
 
-</div>
 
+</div>
 
 )
 
 
 }
+
 
 
 export default BPOPage
