@@ -17,9 +17,9 @@ const [nome,setNome] = useState("")
 
 const [mostrar,setMostrar] = useState(false)
 
-const [filtro,setFiltro] = useState("Todos")
-
 const [aberto,setAberto] = useState<number | null>(null)
+
+
 
 
 
@@ -36,12 +36,24 @@ JSON.stringify(clientes)
 
 
 
-function progresso(tarefas:any[]){
 
-const feitas = tarefas.filter(t=>t.feito).length
+function progresso(tarefas:any[] = []){
+
+
+if(tarefas.length===0){
+
+return 0
+
+}
+
+
+const feitas = tarefas.filter(
+t=>t.feito
+).length
+
 
 return Math.round(
-(feitas / tarefas.length) * 100
+(feitas/tarefas.length)*100
 )
 
 }
@@ -50,13 +62,16 @@ return Math.round(
 
 
 
+
 function status(p:number){
+
 
 if(p===0){
 
-return "🟡 Aguardando"
+return "🟡 Aguardando documentos"
 
 }
+
 
 if(p===100){
 
@@ -64,21 +79,14 @@ return "🟢 Fechado"
 
 }
 
-return "🔵 Execução"
+
+return "🔵 Em processamento"
+
 
 }
 
 
 
-
-
-function proxima(tarefas:any[]){
-
-const item = tarefas.find(t=>!t.feito)
-
-return item ? item.nome : "Finalizado"
-
-}
 
 
 
@@ -95,8 +103,8 @@ return
 }
 
 
-const novo = {
 
+const cliente={
 
 id:Date.now(),
 
@@ -104,16 +112,22 @@ nome,
 
 competencia:"Julho/2026",
 
+observacao:"",
+
+documentos:[],
+
+ultimaAtualizacao:new Date().toLocaleDateString(),
+
 
 tarefas:[
 
-{nome:"Extratos recebidos",feito:false},
+{nome:"Extratos bancários recebidos",feito:false},
 
-{nome:"Cartões recebidos",feito:false},
+{nome:"Faturas cartão recebidas",feito:false},
 
-{nome:"Importação financeira",feito:false},
+{nome:"Importação realizada",feito:false},
 
-{nome:"Conciliação bancária",feito:false},
+{nome:"Conciliação finalizada",feito:false},
 
 {nome:"DRE atualizado",feito:false},
 
@@ -121,12 +135,18 @@ tarefas:[
 
 ]
 
-
 }
 
 
 
-setClientes([...clientes,novo])
+setClientes([
+
+...clientes,
+
+cliente
+
+])
+
 
 setNome("")
 
@@ -140,8 +160,9 @@ setMostrar(false)
 
 
 
-function alterar(id:number,tarefa:string){
 
+
+function alterarChecklist(id:number,tarefaNome:string){
 
 
 setClientes(
@@ -152,18 +173,20 @@ clientes.map(c=>{
 if(c.id===id){
 
 
-return {
+return{
 
 
 ...c,
 
+ultimaAtualizacao:new Date().toLocaleDateString(),
 
-tarefas:c.tarefas.map((t:any)=>{
+tarefas:(c.tarefas || []).map((t:any)=>{
 
 
-if(t.nome===tarefa){
+if(t.nome===tarefaNome){
 
-return {
+
+return{
 
 ...t,
 
@@ -201,37 +224,107 @@ return c
 
 
 
-const lista = clientes.filter(c=>{
 
 
-const p = progresso(c.tarefas)
+
+function salvarObservacao(id:number,texto:string){
 
 
-if(filtro==="Pendentes"){
+setClientes(
 
-return p===0
+
+clientes.map(c=>{
+
+
+if(c.id===id){
+
+
+return{
+
+...c,
+
+observacao:texto,
+
+ultimaAtualizacao:new Date().toLocaleDateString()
+
+}
 
 }
 
 
-if(filtro==="Execução"){
-
-return p>0 && p<100
-
-}
-
-
-if(filtro==="Fechados"){
-
-return p===100
-
-}
-
-
-return true
+return c
 
 
 })
+
+
+)
+
+
+}
+
+
+
+
+
+
+
+
+
+function adicionarDocumento(id:number,doc:string){
+
+
+if(!doc){
+
+return
+
+}
+
+
+
+setClientes(
+
+
+clientes.map(c=>{
+
+
+if(c.id===id){
+
+
+return{
+
+
+...c,
+
+documentos:[
+
+...(c.documentos || []),
+
+doc
+
+],
+
+ultimaAtualizacao:new Date().toLocaleDateString()
+
+}
+
+
+}
+
+
+return c
+
+
+})
+
+
+)
+
+
+}
+
+
+
 
 
 
@@ -246,6 +339,7 @@ return(
 
 
 
+
 <section className="dashboard-header">
 
 
@@ -254,26 +348,27 @@ return(
 
 <p className="tag">
 
-CENTRAL BPO
+CENTRAL BPO GFA
 
 </p>
 
 
 <h1>
 
-Esteira Operacional 🚀
+Gestão Operacional Inteligente 🚀
 
 </h1>
 
 
 <p>
 
-Controle inteligente dos fechamentos financeiros.
+Clientes, documentos, processos e fechamento mensal.
 
 </p>
 
 
 </div>
+
 
 
 
@@ -285,13 +380,16 @@ onClick={()=>setMostrar(true)}
 
 >
 
-+ Cliente
++ Cliente BPO
 
 </button>
 
 
 
 </section>
+
+
+
 
 
 
@@ -311,7 +409,7 @@ onClick={()=>setMostrar(true)}
 
 className="input"
 
-placeholder="Nome cliente"
+placeholder="Nome"
 
 value={nome}
 
@@ -328,7 +426,7 @@ onClick={novoCliente}
 
 >
 
-Salvar
+Cadastrar
 
 </button>
 
@@ -337,6 +435,7 @@ Salvar
 
 
 )}
+
 
 
 
@@ -360,23 +459,20 @@ Salvar
 
 <div className="stat-card gold">
 
-<p>Em execução</p>
+<p>Ativos</p>
 
 <strong>
 
 {
-clientes.filter(c=>{
-
-const p=progresso(c.tarefas)
-
-return p>0 && p<100
-
-}).length
+clientes.filter(
+c=>progresso(c.tarefas)<100
+).length
 }
 
 </strong>
 
 </div>
+
 
 
 
@@ -387,7 +483,9 @@ return p>0 && p<100
 <strong>
 
 {
-clientes.filter(c=>progresso(c.tarefas)===100).length
+clientes.filter(
+c=>progresso(c.tarefas)===100
+).length
 }
 
 </strong>
@@ -403,47 +501,6 @@ clientes.filter(c=>progresso(c.tarefas)===100).length
 
 
 
-<section className="content-card">
-
-
-<h2>
-
-🔎 Filtros
-
-</h2>
-
-
-{["Todos","Pendentes","Execução","Fechados"].map(item=>(
-
-
-<button
-
-key={item}
-
-className="primary-button"
-
-style={{marginRight:10}}
-
-onClick={()=>setFiltro(item)}
-
->
-
-{item}
-
-</button>
-
-
-))}
-
-
-
-</section>
-
-
-
-
-
-
 
 
 
@@ -452,17 +509,18 @@ onClick={()=>setFiltro(item)}
 
 <h2>
 
-Clientes BPO
+📂 Operações BPO
 
 </h2>
 
 
 
 
-{lista.map(cliente=>{
+
+{clientes.map(cliente=>{
 
 
-const p = progresso(cliente.tarefas)
+const pct = progresso(cliente.tarefas)
 
 
 
@@ -490,17 +548,19 @@ key={cliente.id}
 
 
 
+
 <strong>
 
-{status(p)}
+{status(pct)}
 
 </strong>
 
 
 
+
 <p>
 
-Progresso: {p}%
+📊 Progresso: {pct}%
 
 </p>
 
@@ -509,7 +569,7 @@ Progresso: {p}%
 
 <progress
 
-value={p}
+value={pct}
 
 max="100"
 
@@ -519,9 +579,15 @@ style={{width:"100%"}}
 
 
 
+
+
 <p>
 
-➡ Próxima ação: {proxima(cliente.tarefas)}
+📅 Atualizado:
+
+{" "}
+
+{cliente.ultimaAtualizacao || "Sem registro"}
 
 </p>
 
@@ -541,9 +607,13 @@ aberto===cliente.id ? null : cliente.id
 
 >
 
-Ver Processo
+Abrir Gestão
 
 </button>
+
+
+
+
 
 
 
@@ -552,13 +622,22 @@ Ver Processo
 {aberto===cliente.id && (
 
 
+
 <div>
 
 
-<br/>
+
+<hr/>
 
 
-{cliente.tarefas.map((t:any)=>(
+
+
+<h3>📋 Checklist</h3>
+
+
+
+
+{(cliente.tarefas || []).map((t:any)=>(
 
 
 <p
@@ -567,7 +646,7 @@ key={t.nome}
 
 style={{cursor:"pointer"}}
 
-onClick={()=>alterar(
+onClick={()=>alterarChecklist(
 
 cliente.id,
 
@@ -579,10 +658,100 @@ t.nome
 
 {t.feito?"✅":"⬜"} {t.nome}
 
+
 </p>
 
 
 ))}
+
+
+
+
+
+
+
+
+<h3>📎 Documentos</h3>
+
+
+
+{(cliente.documentos || []).map((d:string)=>(
+
+
+<p key={d}>
+
+📄 {d}
+
+</p>
+
+
+))}
+
+
+
+
+<input
+
+className="input"
+
+placeholder="Digite documento e aperte ENTER"
+
+onKeyDown={(e:any)=>{
+
+
+if(e.key==="Enter"){
+
+adicionarDocumento(
+
+cliente.id,
+
+e.target.value
+
+)
+
+e.target.value=""
+
+}
+
+
+}}
+
+/>
+
+
+
+
+
+
+
+
+
+<h3>📝 Observações internas</h3>
+
+
+
+<textarea
+
+className="input"
+
+value={cliente.observacao || ""}
+
+placeholder="Anotações sobre este cliente..."
+
+onChange={e=>
+
+salvarObservacao(
+
+cliente.id,
+
+e.target.value
+
+)
+
+}
+
+/>
+
 
 
 </div>
@@ -611,8 +780,8 @@ t.nome
 
 
 
-
 </div>
+
 
 )
 
