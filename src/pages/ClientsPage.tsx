@@ -18,7 +18,6 @@ const [cadastro,setCadastro] = useState(false)
 const [clienteAberto,setClienteAberto] = useState<any>(null)
 
 
-
 const [form,setForm] = useState({
 
 empresa:"",
@@ -33,16 +32,11 @@ observacao:""
 
 
 
-
-
 useEffect(()=>{
 
 localStorage.setItem(
-
 "gfa-clientes",
-
 JSON.stringify(clientes)
-
 )
 
 },[clientes])
@@ -50,26 +44,16 @@ JSON.stringify(clientes)
 
 
 
-
-
 const servicos=[
 
 "BPO Financeiro",
-
 "Consultoria Empresarial",
-
 "Mentoria Individual",
-
 "Consultoria Financeira",
-
 "Diagnóstico Financeiro",
-
 "Outros"
 
 ]
-
-
-
 
 
 
@@ -84,7 +68,6 @@ return
 }
 
 
-
 const novo={
 
 id:Date.now(),
@@ -96,15 +79,7 @@ criado:new Date().toLocaleDateString()
 }
 
 
-
-setClientes([
-
-...clientes,
-
-novo
-
-])
-
+setClientes([...clientes,novo])
 
 
 setForm({
@@ -122,9 +97,8 @@ observacao:""
 
 setCadastro(false)
 
+
 }
-
-
 
 
 
@@ -147,15 +121,10 @@ clientes.filter(c=>c.id!==id)
 
 )
 
-
 setClienteAberto(null)
 
 
 }
-
-
-
-
 
 
 
@@ -166,6 +135,14 @@ const clientesOrdenados=[...clientes].sort(
 (a,b)=>a.empresa.localeCompare(b.empresa)
 
 )
+
+
+
+const receita=clientes.reduce(
+
+(t,c)=>t+Number(c.valor||0)
+
+,0)
 
 
 
@@ -195,7 +172,6 @@ CRM GFA
 </p>
 
 
-
 <h1>
 
 Clientes 👥
@@ -203,17 +179,14 @@ Clientes 👥
 </h1>
 
 
-
 <p>
 
-Carteira central de clientes e contratos.
+Gestão da carteira, contratos e relacionamento.
 
 </p>
 
 
 </div>
-
-
 
 
 
@@ -247,7 +220,7 @@ onClick={()=>setCadastro(true)}
 
 <div className="stat-card">
 
-<p>Total</p>
+<p>Total Clientes</p>
 
 <strong>{clientes.length}</strong>
 
@@ -255,59 +228,52 @@ onClick={()=>setCadastro(true)}
 
 
 
-
 <div className="stat-card gold">
 
-<p>Receita mensal</p>
+<p>Receita Mensal</p>
 
 <strong>
 
+{
 
-R$ {
+receita.toLocaleString(
 
+"pt-BR",
 
-clientes.reduce(
+{
 
-(t,c)=>t+Number(c.valor||0)
+style:"currency",
 
-,0)
-
+currency:"BRL"
 
 }
 
+)
+
+}
 
 </strong>
 
 </div>
-
-
 
 
 
 <div className="stat-card">
 
-
 <p>Ativos</p>
-
 
 <strong>
 
-
 {
 
-clientes.filter(
-
-c=>c.status==="Ativo"
-
-).length
+clientes.filter(c=>c.status==="Ativo").length
 
 }
 
-
 </strong>
 
-
 </div>
+
 
 
 </section>
@@ -320,20 +286,48 @@ c=>c.status==="Ativo"
 
 
 
-
-
 {cadastro && (
 
 
-<div className="content-card">
+
+<section
+
+className="content-card"
+
+style={{
+
+maxWidth:"900px",
+
+margin:"0 auto 25px auto"
+
+}}
+
+>
+
 
 
 <h2>
 
-➕ Novo Cliente
+👥 Cadastro de Cliente
 
 </h2>
 
+
+
+
+<div
+
+style={{
+
+display:"grid",
+
+gridTemplateColumns:"1fr 1fr",
+
+gap:"15px"
+
+}}
+
+>
 
 
 
@@ -348,7 +342,6 @@ value={form.empresa}
 onChange={e=>setForm({...form,empresa:e.target.value})}
 
 />
-
 
 
 
@@ -382,8 +375,6 @@ onChange={e=>setForm({...form,telefone:e.target.value})}
 
 
 
-
-
 <select
 
 className="input"
@@ -408,8 +399,6 @@ onChange={e=>setForm({...form,servico:e.target.value})}
 
 
 
-
-
 <select
 
 className="input"
@@ -419,7 +408,6 @@ value={form.status}
 onChange={e=>setForm({...form,status:e.target.value})}
 
 >
-
 
 <option>Ativo</option>
 
@@ -433,8 +421,6 @@ onChange={e=>setForm({...form,status:e.target.value})}
 
 
 </select>
-
-
 
 
 
@@ -456,44 +442,57 @@ onChange={e=>setForm({...form,valor:e.target.value})}
 
 
 
-
 <textarea
 
 className="input"
 
-placeholder="Observações"
+placeholder="Observações estratégicas"
 
 value={form.observacao}
 
 onChange={e=>setForm({...form,observacao:e.target.value})}
 
+style={{
+
+gridColumn:"1/3",
+
+height:"80px"
+
+}}
+
 />
 
 
 
+</div>
 
 
 
-<button
 
-className="primary-button"
 
-onClick={salvarCliente}
+
+
+<div
+
+style={{
+
+display:"flex",
+
+justifyContent:"flex-end",
+
+gap:"10px",
+
+marginTop:"15px"
+
+}}
 
 >
 
-Salvar
-
-</button>
-
-
 
 
 <button
 
 className="primary-button"
-
-style={{marginLeft:"10px"}}
 
 onClick={()=>setCadastro(false)}
 
@@ -506,7 +505,26 @@ Cancelar
 
 
 
+<button
+
+className="primary-button"
+
+onClick={salvarCliente}
+
+>
+
+Salvar Cliente
+
+</button>
+
+
+
 </div>
+
+
+
+
+</section>
 
 
 )}
@@ -524,11 +542,9 @@ Cancelar
 
 <h2>
 
-📋 Lista de Clientes
+📋 Meus Clientes
 
 </h2>
-
-
 
 
 
@@ -543,20 +559,9 @@ className="cliente-alerta"
 
 key={cliente.id}
 
->
-
-
-<div
-
 style={{
 
-display:"flex",
-
-justifyContent:"space-between",
-
-alignItems:"center",
-
-width:"100%"
+padding:"18px 22px"
 
 }}
 
@@ -564,8 +569,24 @@ width:"100%"
 
 
 
+<div
 
-<div>
+style={{
+
+display:"grid",
+
+gridTemplateColumns:"2fr 2fr 1fr 150px",
+
+alignItems:"center",
+
+width:"100%",
+
+gap:"20px"
+
+}}
+
+>
+
 
 
 
@@ -577,26 +598,18 @@ width:"100%"
 
 
 
-<p>
-
-{cliente.servico}
-
-</p>
-
-
-
-</div>
-
-
-
-
-
-
-<div>
-
 
 <span>
 
+{cliente.servico}
+
+</span>
+
+
+
+
+
+<span>
 
 {
 
@@ -612,12 +625,9 @@ cliente.status==="Ativo"
 
 }
 
-
 </span>
 
 
-
-{" "}
 
 
 
@@ -637,18 +647,15 @@ Detalhes
 
 
 
-</div>
-
-
 
 </div>
 
 
 </div>
-
 
 
 ))}
+
 
 
 
@@ -663,10 +670,26 @@ Detalhes
 
 
 
+
+
 {clienteAberto && (
 
 
-<section className="content-card">
+
+<section
+
+className="content-card"
+
+style={{
+
+maxWidth:"700px",
+
+margin:"20px auto"
+
+}}
+
+>
+
 
 
 <h2>
@@ -677,64 +700,19 @@ Detalhes
 
 
 
+<p>👤 Responsável: {clienteAberto.responsavel}</p>
 
-<p>
+<p>📱 Telefone: {clienteAberto.telefone}</p>
 
-👤 Responsável: {clienteAberto.responsavel}
+<p>📂 Serviço: {clienteAberto.servico}</p>
 
-</p>
+<p>📌 Status: {clienteAberto.status}</p>
 
+<p>💰 Valor: R$ {clienteAberto.valor}</p>
 
+<p>📅 Cadastro: {clienteAberto.criado}</p>
 
-<p>
-
-📱 Telefone: {clienteAberto.telefone}
-
-</p>
-
-
-
-<p>
-
-📂 Serviço: {clienteAberto.servico}
-
-</p>
-
-
-
-
-<p>
-
-📌 Status: {clienteAberto.status}
-
-</p>
-
-
-
-
-<p>
-
-💰 Valor mensal: R$ {clienteAberto.valor}
-
-</p>
-
-
-
-<p>
-
-📅 Cadastro: {clienteAberto.criado}
-
-</p>
-
-
-
-
-<p>
-
-📝 {clienteAberto.observacao}
-
-</p>
-
+<p>📝 {clienteAberto.observacao}</p>
 
 
 
@@ -754,7 +732,6 @@ Fechar
 
 
 
-
 <button
 
 className="primary-button"
@@ -765,9 +742,10 @@ onClick={()=>excluirCliente(clienteAberto.id)}
 
 >
 
-Excluir Cliente
+Excluir
 
 </button>
+
 
 
 
@@ -782,6 +760,7 @@ Excluir Cliente
 
 
 </div>
+
 
 )
 
