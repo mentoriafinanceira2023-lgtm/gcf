@@ -1,24 +1,41 @@
-import type { ReactNode } from 'react'
-import AppHeader from '../components/AppHeader'
-import AppSidebar from '../components/AppSidebar'
+import Sidebar from "../components/Sidebar"
 
-type MainLayoutProps = {
-  title: string
-  subtitle: string
-  children: ReactNode
+
+type Props = {
+
+children: React.ReactNode
+
 }
 
-function MainLayout({ title, subtitle, children }: MainLayoutProps) {
-  return (
-    <div className="app-shell">
-      <AppSidebar />
 
-      <main className="main-panel">
-        <AppHeader title={title} subtitle={subtitle} />
-        {children}
-      </main>
-    </div>
-  )
+function MainLayout({ children }: Props) {
+
+
+return (
+
+
+<div className="app-shell">
+
+
+<Sidebar />
+
+
+<main className="main-content">
+
+
+{children}
+
+
+</main>
+
+
+</div>
+
+
+)
+
+
 }
+
 
 export default MainLayout

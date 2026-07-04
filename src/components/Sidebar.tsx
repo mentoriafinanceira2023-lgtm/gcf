@@ -1,52 +1,156 @@
-type NavItem = {
-  label: string
-  icon: string
-  view: 'dashboard' | 'clients'
+import { NavLink } from "react-router-dom"
+
+
+function Sidebar() {
+
+
+const menus = [
+
+{
+nome:"Dashboard",
+rota:"/dashboard",
+icone:"🏠"
+},
+
+{
+nome:"Clientes",
+rota:"/clientes",
+icone:"👥"
+},
+
+{
+nome:"Agenda",
+rota:"/agenda",
+icone:"🗓️"
+},
+
+{
+nome:"CRM",
+rota:"/crm",
+icone:"🤝"
+},
+
+{
+nome:"Financeiro",
+rota:"/financeiro",
+icone:"💰"
+},
+
+{
+nome:"BPO",
+rota:"/bpo",
+icone:"🏢"
+},
+
+{
+nome:"Indicadores",
+rota:"/indicadores",
+icone:"📊"
+},
+
+{
+nome:"Documentos",
+rota:"/documentos",
+icone:"📄"
+},
+
+{
+nome:"Configurações",
+rota:"/configuracoes",
+icone:"⚙️"
 }
 
-type SidebarProps = {
-  activeView: 'dashboard' | 'clients'
-  onNavigate: (view: 'dashboard' | 'clients') => void
-}
-
-const navItems: NavItem[] = [
-  { label: 'Dashboard', icon: '🏠', view: 'dashboard' },
-  { label: 'Clientes', icon: '👥', view: 'clients' },
-  { label: 'Agenda', icon: '📅', view: 'dashboard' },
-  { label: 'CRM', icon: '🤝', view: 'dashboard' },
-  { label: 'Financeiro', icon: '💰', view: 'dashboard' },
-  { label: 'BPO', icon: '🏢', view: 'dashboard' },
-  { label: 'Indicadores', icon: '📊', view: 'dashboard' },
-  { label: 'Documentos', icon: '📄', view: 'dashboard' },
-  { label: 'Configurações', icon: '⚙', view: 'dashboard' },
 ]
 
-function Sidebar({ activeView, onNavigate }: SidebarProps) {
-  return (
-    <aside className="sidebar">
-      <div className="brand-block">
-        <div className="brand-mark">GCF</div>
-        <div>
-          <h2>Gestão e Consultoria</h2>
-          <p>Financeira</p>
-        </div>
-      </div>
 
-      <nav className="nav-menu" aria-label="Menu lateral">
-        {navItems.map((item) => (
-          <button
-            key={item.label}
-            type="button"
-            className={`nav-link ${activeView === item.view ? 'active' : ''}`}
-            onClick={() => onNavigate(item.view)}
-          >
-            <span className="nav-icon">{item.icon}</span>
-            <span>{item.label}</span>
-          </button>
-        ))}
-      </nav>
-    </aside>
-  )
+return (
+
+<aside className="sidebar">
+
+
+<div className="brand-block">
+
+
+<div className="logo-circle">
+GFA
+</div>
+
+
+<div>
+
+<h2>
+Gestão e Consultoria
+</h2>
+
+<p>
+Financeira
+</p>
+
+
+</div>
+
+
+</div>
+
+
+
+<nav className="menu">
+
+
+{menus.map((item)=>(
+
+
+<NavLink
+
+
+key={item.rota}
+
+to={item.rota}
+
+className={({isActive}) =>
+
+isActive
+?
+"menu-link active"
+:
+"menu-link"
+
 }
+
+
+>
+
+
+<span className="menu-icon">
+
+{item.icone}
+
+</span>
+
+
+<span>
+
+{item.nome}
+
+</span>
+
+
+
+</NavLink>
+
+
+))}
+
+
+</nav>
+
+
+</aside>
+
+
+)
+
+}
+
 
 export default Sidebar

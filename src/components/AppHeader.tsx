@@ -1,42 +1,54 @@
-import { useMemo } from 'react'
-
-type AppHeaderProps = {
-  title: string
-  subtitle: string
-}
-
-function AppHeader({ title, subtitle }: AppHeaderProps) {
-  const now = useMemo(() => new Date(), [])
-
-  const formattedDate = now.toLocaleDateString('pt-BR', {
-    weekday: 'long',
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  })
-
-  const greeting = now.getHours() < 12 ? 'Bom dia' : now.getHours() < 18 ? 'Boa tarde' : 'Boa noite'
+function AppHeader() {
 
   return (
-    <header className="topbar">
+
+    <header className="app-header">
+
+
       <div>
-        <p className="eyebrow">Painel corporativo</p>
-        <h1>{title}</h1>
-        <p className="subtitle">{subtitle}</p>
+
+        <strong className="header-logo">
+          Sistema GFA
+        </strong>
+
+        <span>
+          Gestão Financeira e Consultoria
+        </span>
+
       </div>
 
-      <div className="topbar-actions">
-        <div className="header-meta">
-          <div className="greeting">{greeting}, João</div>
-          <div className="date-text">{formattedDate}</div>
-        </div>
-        <button type="button" className="notification-pill" aria-label="Notificações">
+
+      <div className="header-user">
+
+        <button className="notification">
           🔔
         </button>
-        <div className="user-chip">JS</div>
+
+        <div className="user-avatar">
+          JO
+        </div>
+
+        <div>
+
+          <strong>
+            Jefferson Oliveira
+          </strong>
+
+          <p>
+            Consultor Financeiro
+          </p>
+
+        </div>
+
+
       </div>
+
+
     </header>
+
   )
+
 }
+
 
 export default AppHeader
