@@ -17,6 +17,10 @@ const [nome,setNome] = useState("")
 
 const [mostrar,setMostrar] = useState(false)
 
+const [filtro,setFiltro] = useState("Todos")
+
+const [aberto,setAberto] = useState<number | null>(null)
+
 
 
 useEffect(()=>{
@@ -34,15 +38,10 @@ JSON.stringify(clientes)
 
 function progresso(tarefas:any[]){
 
-const total = tarefas.length
-
-const feitas = tarefas.filter(
-t=>t.feito
-).length
-
+const feitas = tarefas.filter(t=>t.feito).length
 
 return Math.round(
-(feitas / total) * 100
+(feitas / tarefas.length) * 100
 )
 
 }
@@ -50,25 +49,22 @@ return Math.round(
 
 
 
-function statusCliente(percentual:number){
 
+function status(p:number){
 
-if(percentual===0){
+if(p===0){
 
-return "🟡 Aguardando cliente"
+return "🟡 Aguardando"
 
 }
 
-
-if(percentual===100){
+if(p===100){
 
 return "🟢 Fechado"
 
 }
 
-
-return "🔵 Em execução"
-
+return "🔵 Execução"
 
 }
 
@@ -76,24 +72,13 @@ return "🔵 Em execução"
 
 
 
+function proxima(tarefas:any[]){
 
-function proximaAcao(tarefas:any[]){
+const item = tarefas.find(t=>!t.feito)
 
-
-const pendente = tarefas.find(
-t=>!t.feito
-)
-
-
-return pendente
-?
-pendente.nome
-:
-"Processo concluído"
-
+return item ? item.nome : "Finalizado"
 
 }
-
 
 
 
@@ -110,8 +95,7 @@ return
 }
 
 
-
-const cliente={
+const novo = {
 
 
 id:Date.now(),
@@ -123,55 +107,17 @@ competencia:"Julho/2026",
 
 tarefas:[
 
+{nome:"Extratos recebidos",feito:false},
 
-{
-etapa:"📥 Coleta",
-nome:"Receber extratos bancários",
-feito:false
-},
+{nome:"Cartões recebidos",feito:false},
 
+{nome:"Importação financeira",feito:false},
 
-{
-etapa:"📥 Coleta",
-nome:"Receber faturas cartões",
-feito:false
-},
+{nome:"Conciliação bancária",feito:false},
 
+{nome:"DRE atualizado",feito:false},
 
-{
-etapa:"⚙️ Processamento",
-nome:"Importar movimentações",
-feito:false
-},
-
-
-{
-etapa:"⚙️ Processamento",
-nome:"Realizar conciliação",
-feito:false
-},
-
-
-{
-etapa:"📊 Gestão",
-nome:"Atualizar DRE",
-feito:false
-},
-
-
-{
-etapa:"📊 Gestão",
-nome:"Analisar indicadores",
-feito:false
-},
-
-
-{
-etapa:"🤝 Entrega",
-nome:"Enviar relatório ao cliente",
-feito:false
-}
-
+{nome:"Relatório enviado",feito:false}
 
 ]
 
@@ -180,14 +126,7 @@ feito:false
 
 
 
-setClientes([
-
-...clientes,
-
-cliente
-
-])
-
+setClientes([...clientes,novo])
 
 setNome("")
 
@@ -201,31 +140,28 @@ setMostrar(false)
 
 
 
-
-function alterar(id:number,nomeTarefa:string){
+function alterar(id:number,tarefa:string){
 
 
 
 setClientes(
 
-clientes.map(cliente=>{
+clientes.map(c=>{
 
 
-if(cliente.id===id){
-
+if(c.id===id){
 
 
 return {
 
 
-...cliente,
+...c,
 
 
-tarefas:cliente.tarefas.map((t:any)=>{
+tarefas:c.tarefas.map((t:any)=>{
 
 
-if(t.nome===nomeTarefa){
-
+if(t.nome===tarefa){
 
 return {
 
@@ -234,7 +170,6 @@ return {
 feito:!t.feito
 
 }
-
 
 }
 
@@ -248,11 +183,10 @@ return t
 }
 
 
-
 }
 
 
-return cliente
+return c
 
 
 })
@@ -262,6 +196,42 @@ return cliente
 
 
 }
+
+
+
+
+
+const lista = clientes.filter(c=>{
+
+
+const p = progresso(c.tarefas)
+
+
+if(filtro==="Pendentes"){
+
+return p===0
+
+}
+
+
+if(filtro==="Execução"){
+
+return p>0 && p<100
+
+}
+
+
+if(filtro==="Fechados"){
+
+return p===100
+
+}
+
+
+return true
+
+
+})
 
 
 
@@ -284,21 +254,21 @@ return(
 
 <p className="tag">
 
-CENTRAL BPO GFA
+CENTRAL BPO
 
 </p>
 
 
 <h1>
 
-Operação Financeira Inteligente 🚀
+Esteira Operacional 🚀
 
 </h1>
 
 
 <p>
 
-Controle completo dos fechamentos mensais dos clientes.
+Controle inteligente dos fechamentos financeiros.
 
 </p>
 
@@ -315,7 +285,7 @@ onClick={()=>setMostrar(true)}
 
 >
 
-+ Cliente BPO
++ Cliente
 
 </button>
 
@@ -328,27 +298,20 @@ onClick={()=>setMostrar(true)}
 
 
 
-
-
 {mostrar && (
 
 
 <section className="content-card">
 
 
-<h2>
-
-Novo Cliente
-
-</h2>
-
+<h2>Novo Cliente</h2>
 
 
 <input
 
 className="input"
 
-placeholder="Nome do cliente"
+placeholder="Nome cliente"
 
 value={nome}
 
@@ -387,13 +350,9 @@ Salvar
 
 <div className="stat-card">
 
-<p>Total Clientes</p>
+<p>Clientes</p>
 
-<strong>
-
-{clientes.length}
-
-</strong>
+<strong>{clientes.length}</strong>
 
 </div>
 
@@ -401,16 +360,18 @@ Salvar
 
 <div className="stat-card gold">
 
-<p>Em andamento</p>
+<p>Em execução</p>
 
 <strong>
 
 {
+clientes.filter(c=>{
 
-clientes.filter(
-c=>progresso(c.tarefas)<100
-).length
+const p=progresso(c.tarefas)
 
+return p>0 && p<100
+
+}).length
 }
 
 </strong>
@@ -419,19 +380,14 @@ c=>progresso(c.tarefas)<100
 
 
 
-
 <div className="stat-card">
 
-<p>Finalizados</p>
+<p>Fechados</p>
 
 <strong>
 
 {
-
-clientes.filter(
-c=>progresso(c.tarefas)===100
-).length
-
+clientes.filter(c=>progresso(c.tarefas)===100).length
 }
 
 </strong>
@@ -447,25 +403,67 @@ c=>progresso(c.tarefas)===100
 
 
 
+<section className="content-card">
+
+
+<h2>
+
+🔎 Filtros
+
+</h2>
+
+
+{["Todos","Pendentes","Execução","Fechados"].map(item=>(
+
+
+<button
+
+key={item}
+
+className="primary-button"
+
+style={{marginRight:10}}
+
+onClick={()=>setFiltro(item)}
+
+>
+
+{item}
+
+</button>
+
+
+))}
+
+
+
+</section>
+
+
+
+
+
+
+
+
 
 <section className="content-card">
 
 
 <h2>
 
-📋 Esteira de Fechamentos
+Clientes BPO
 
 </h2>
 
 
 
 
+{lista.map(cliente=>{
 
 
-{clientes.map(cliente=>{
+const p = progresso(cliente.tarefas)
 
-
-const pct = progresso(cliente.tarefas)
 
 
 return(
@@ -492,37 +490,38 @@ key={cliente.id}
 
 
 
-<p>
-
-Competência: {cliente.competencia}
-
-</p>
-
-
-
 <strong>
 
-{statusCliente(pct)}
+{status(p)}
 
 </strong>
 
 
 
-
 <p>
 
-Progresso: {pct}%
+Progresso: {p}%
 
 </p>
 
 
 
 
+<progress
+
+value={p}
+
+max="100"
+
+style={{width:"100%"}}
+
+/>
+
+
+
 <p>
 
-➡ Próxima ação:
-{" "}
-{proximaAcao(cliente.tarefas)}
+➡ Próxima ação: {proxima(cliente.tarefas)}
 
 </p>
 
@@ -530,9 +529,33 @@ Progresso: {pct}%
 
 
 
-<hr/>
+<button
+
+className="primary-button"
+
+onClick={()=>setAberto(
+
+aberto===cliente.id ? null : cliente.id
+
+)}
+
+>
+
+Ver Processo
+
+</button>
 
 
+
+
+
+{aberto===cliente.id && (
+
+
+<div>
+
+
+<br/>
 
 
 {cliente.tarefas.map((t:any)=>(
@@ -554,24 +577,19 @@ t.nome
 
 >
 
-
-{t.feito?"✅":"⬜"}
-
-{" "}
-
-{t.etapa}
-
- -
-
-{" "}
-
-{t.nome}
-
+{t.feito?"✅":"⬜"} {t.nome}
 
 </p>
 
 
 ))}
+
+
+</div>
+
+
+)}
+
 
 
 
@@ -593,8 +611,8 @@ t.nome
 
 
 
-</div>
 
+</div>
 
 )
 
