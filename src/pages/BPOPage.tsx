@@ -4,112 +4,92 @@ import { useEffect, useState } from "react"
 function BPOPage(){
 
 
-const [mostrarCadastro,setMostrarCadastro] = useState(false)
-
-const [nomeCliente,setNomeCliente] = useState("")
-
-const [competencia,setCompetencia] = useState("Julho/2026")
-
-const [prazo,setPrazo] = useState("2026-08-10")
-
-
-
-const [clientesBPO,setClientesBPO] = useState<any[]>(()=>{
-
+const [clientes,setClientes] = useState<any[]>(()=>{
 
 const dados = localStorage.getItem("gfa-bpo-clientes")
 
-
 return dados ? JSON.parse(dados) : []
-
 
 })
 
 
+const [nome,setNome] = useState("")
+
+const [mostrar,setMostrar] = useState(false)
 
 
 
 useEffect(()=>{
 
-
 localStorage.setItem(
-
 "gfa-bpo-clientes",
-
-JSON.stringify(clientesBPO)
-
+JSON.stringify(clientes)
 )
 
-
-},[clientesBPO])
-
+},[clientes])
 
 
 
 
 
+function progresso(tarefas:any[]){
 
-function calcularStatus(tarefas:any[]){
-
+const total = tarefas.length
 
 const feitas = tarefas.filter(
 t=>t.feito
 ).length
 
 
-
-if(feitas === 0){
-
-return {
-texto:"Aguardando documentos",
-cor:"🟡"
-}
-
-}
-
-
-if(feitas === tarefas.length){
-
-return {
-texto:"Fechamento concluído",
-cor:"🟢"
-}
-
-}
-
-
-return {
-texto:"Em processamento",
-cor:"🔵"
-}
-
+return Math.round(
+(feitas / total) * 100
+)
 
 }
 
 
 
 
+function statusCliente(percentual:number){
 
 
+if(percentual===0){
 
-function verificarPrazo(data:string){
+return "🟡 Aguardando cliente"
 
-
-const hoje = new Date()
-
-const limite = new Date(data)
+}
 
 
-if(hoje > limite){
+if(percentual===100){
+
+return "🟢 Fechado"
+
+}
 
 
-return "🔴 Atrasado"
+return "🔵 Em execução"
 
 
 }
 
 
-return "🟢 Dentro do prazo"
+
+
+
+
+function proximaAcao(tarefas:any[]){
+
+
+const pendente = tarefas.find(
+t=>!t.feito
+)
+
+
+return pendente
+?
+pendente.nome
+:
+"Processo concluído"
 
 
 }
@@ -120,12 +100,10 @@ return "🟢 Dentro do prazo"
 
 
 
-
-function adicionarCliente(){
-
+function novoCliente(){
 
 
-if(nomeCliente.trim()===""){
+if(!nome){
 
 return
 
@@ -133,50 +111,64 @@ return
 
 
 
-const novoCliente = {
+const cliente={
 
 
 id:Date.now(),
 
+nome,
 
-nome:nomeCliente,
-
-
-competencia,
-
-
-prazo,
+competencia:"Julho/2026",
 
 
 tarefas:[
 
 
 {
-nome:"Extratos recebidos",
+etapa:"📥 Coleta",
+nome:"Receber extratos bancários",
 feito:false
 },
 
 
 {
-nome:"Faturas recebidas",
+etapa:"📥 Coleta",
+nome:"Receber faturas cartões",
 feito:false
 },
 
 
 {
-nome:"Conciliação realizada",
+etapa:"⚙️ Processamento",
+nome:"Importar movimentações",
 feito:false
 },
 
 
 {
-nome:"DRE fechado",
+etapa:"⚙️ Processamento",
+nome:"Realizar conciliação",
 feito:false
 },
 
 
 {
-nome:"Relatório enviado",
+etapa:"📊 Gestão",
+nome:"Atualizar DRE",
+feito:false
+},
+
+
+{
+etapa:"📊 Gestão",
+nome:"Analisar indicadores",
+feito:false
+},
+
+
+{
+etapa:"🤝 Entrega",
+nome:"Enviar relatório ao cliente",
 feito:false
 }
 
@@ -188,20 +180,18 @@ feito:false
 
 
 
+setClientes([
 
-setClientesBPO([
+...clientes,
 
-...clientesBPO,
-
-novoCliente
+cliente
 
 ])
 
 
+setNome("")
 
-setNomeCliente("")
-
-setMostrarCadastro(false)
+setMostrar(false)
 
 
 }
@@ -212,14 +202,13 @@ setMostrarCadastro(false)
 
 
 
-
-
-function alterarChecklist(id:number,tarefaNome:string){
+function alterar(id:number,nomeTarefa:string){
 
 
 
-const atualizado = clientesBPO.map(cliente=>{
+setClientes(
 
+clientes.map(cliente=>{
 
 
 if(cliente.id===id){
@@ -232,25 +221,25 @@ return {
 ...cliente,
 
 
-tarefas:cliente.tarefas.map((tarefa:any)=>{
+tarefas:cliente.tarefas.map((t:any)=>{
 
 
-if(tarefa.nome===tarefaNome){
+if(t.nome===nomeTarefa){
 
 
 return {
 
-...tarefa,
+...t,
 
-feito:!tarefa.feito
-
-}
-
+feito:!t.feito
 
 }
 
 
-return tarefa
+}
+
+
+return t
 
 
 })
@@ -259,26 +248,20 @@ return tarefa
 }
 
 
-}
 
+}
 
 
 return cliente
 
 
-
 })
 
 
-
-
-setClientesBPO(atualizado)
+)
 
 
 }
-
-
-
 
 
 
@@ -289,10 +272,7 @@ setClientesBPO(atualizado)
 
 return(
 
-
 <div>
-
-
 
 
 
@@ -304,23 +284,21 @@ return(
 
 <p className="tag">
 
-MÓDULO BPO
+CENTRAL BPO GFA
 
 </p>
 
 
-
 <h1>
 
-Gestão Operacional BPO 📂
+Operação Financeira Inteligente 🚀
 
 </h1>
 
 
-
 <p>
 
-Controle de documentos, prazos e fechamentos.
+Controle completo dos fechamentos mensais dos clientes.
 
 </p>
 
@@ -329,19 +307,15 @@ Controle de documentos, prazos e fechamentos.
 
 
 
-
-
 <button
 
 className="primary-button"
 
-onClick={()=>setMostrarCadastro(true)}
+onClick={()=>setMostrar(true)}
 
 >
 
-
-+ Novo Cliente BPO
-
++ Cliente BPO
 
 </button>
 
@@ -356,91 +330,50 @@ onClick={()=>setMostrarCadastro(true)}
 
 
 
-
-{mostrarCadastro && (
-
+{mostrar && (
 
 
 <section className="content-card">
 
 
-
 <h2>
 
-Novo Cliente BPO
+Novo Cliente
 
 </h2>
 
 
 
-
 <input
 
 className="input"
 
-placeholder="Nome cliente"
+placeholder="Nome do cliente"
 
-value={nomeCliente}
+value={nome}
 
-onChange={(e)=>setNomeCliente(e.target.value)}
-
-/>
-
-
-
-
-
-<input
-
-className="input"
-
-placeholder="Competência"
-
-value={competencia}
-
-onChange={(e)=>setCompetencia(e.target.value)}
+onChange={e=>setNome(e.target.value)}
 
 />
-
-
-
-
-
-<input
-
-className="input"
-
-type="date"
-
-value={prazo}
-
-onChange={(e)=>setPrazo(e.target.value)}
-
-/>
-
-
 
 
 <button
 
 className="primary-button"
 
-onClick={adicionarCliente}
+onClick={novoCliente}
 
 >
 
-Salvar Cliente
+Salvar
 
 </button>
-
 
 
 </section>
 
 
 )}
-
-
 
 
 
@@ -454,26 +387,56 @@ Salvar Cliente
 
 <div className="stat-card">
 
-
-<p>Clientes BPO</p>
-
+<p>Total Clientes</p>
 
 <strong>
 
-{clientesBPO.length}
+{clientes.length}
 
 </strong>
 
+</div>
 
-<span>
 
-Operações cadastradas
 
-</span>
+<div className="stat-card gold">
 
+<p>Em andamento</p>
+
+<strong>
+
+{
+
+clientes.filter(
+c=>progresso(c.tarefas)<100
+).length
+
+}
+
+</strong>
 
 </div>
 
+
+
+
+<div className="stat-card">
+
+<p>Finalizados</p>
+
+<strong>
+
+{
+
+clientes.filter(
+c=>progresso(c.tarefas)===100
+).length
+
+}
+
+</strong>
+
+</div>
 
 
 </section>
@@ -485,14 +448,12 @@ Operações cadastradas
 
 
 
-
 <section className="content-card">
-
 
 
 <h2>
 
-📋 Controle Mensal BPO
+📋 Esteira de Fechamentos
 
 </h2>
 
@@ -500,31 +461,14 @@ Operações cadastradas
 
 
 
-{clientesBPO.length===0 && (
+
+{clientes.map(cliente=>{
 
 
-<p>
-
-Nenhum cliente cadastrado.
-
-</p>
-
-
-)}
-
-
-
-
-
-
-{clientesBPO.map(cliente=>{
-
-
-const status = calcularStatus(cliente.tarefas)
+const pct = progresso(cliente.tarefas)
 
 
 return(
-
 
 
 <div
@@ -536,24 +480,13 @@ key={cliente.id}
 >
 
 
-
-
-<span>
-
-{status.cor}
-
-</span>
-
-
-
-
-<div>
+<div style={{width:"100%"}}>
 
 
 
 <h3>
 
-{cliente.nome}
+🏢 {cliente.nome}
 
 </h3>
 
@@ -567,27 +500,29 @@ Competência: {cliente.competencia}
 
 
 
-
-<p>
-
-Prazo: {cliente.prazo}
-
-</p>
-
-
-
-
 <strong>
 
-{status.texto}
+{statusCliente(pct)}
 
 </strong>
 
 
 
+
 <p>
 
-{verificarPrazo(cliente.prazo)}
+Progresso: {pct}%
+
+</p>
+
+
+
+
+<p>
+
+➡ Próxima ação:
+{" "}
+{proximaAcao(cliente.tarefas)}
 
 </p>
 
@@ -595,38 +530,45 @@ Prazo: {cliente.prazo}
 
 
 
-<br/>
+<hr/>
 
 
 
 
-
-{cliente.tarefas.map((tarefa:any)=>(
-
+{cliente.tarefas.map((t:any)=>(
 
 
 <p
 
-key={tarefa.nome}
+key={t.nome}
 
 style={{cursor:"pointer"}}
 
-onClick={()=>alterarChecklist(
+onClick={()=>alterar(
 
 cliente.id,
 
-tarefa.nome
+t.nome
 
 )}
 
 >
 
 
-{tarefa.feito ? "✅":"⬜"} {tarefa.nome}
+{t.feito?"✅":"⬜"}
+
+{" "}
+
+{t.etapa}
+
+ -
+
+{" "}
+
+{t.nome}
 
 
 </p>
-
 
 
 ))}
@@ -636,11 +578,11 @@ tarefa.nome
 </div>
 
 
+
 </div>
 
 
 )
-
 
 
 })}
@@ -651,12 +593,10 @@ tarefa.nome
 
 
 
-
 </div>
 
 
 )
-
 
 }
 
