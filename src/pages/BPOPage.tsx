@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 
 
-function BPOPage() {
+function BPOPage(){
 
 
 const [mostrarCadastro,setMostrarCadastro] = useState(false)
@@ -14,34 +14,23 @@ const [competencia,setCompetencia] = useState("Julho/2026")
 
 const [clientesBPO,setClientesBPO] = useState<any[]>(()=>{
 
-
 const dados = localStorage.getItem("gfa-bpo-clientes")
 
-
 return dados ? JSON.parse(dados) : []
-
 
 })
 
 
 
 
-
 useEffect(()=>{
 
-
 localStorage.setItem(
-
 "gfa-bpo-clientes",
-
 JSON.stringify(clientesBPO)
-
 )
 
-
 },[clientesBPO])
-
-
 
 
 
@@ -52,69 +41,38 @@ function adicionarCliente(){
 
 
 if(nomeCliente.trim()===""){
-
 return
-
 }
 
 
 
 const novoCliente = {
 
-
 id:Date.now(),
-
 
 nome:nomeCliente,
 
-
-competencia:competencia,
-
+competencia,
 
 status:"Aguardando documentos",
 
-
 cor:"🟡",
-
 
 tarefas:[
 
+{nome:"Extratos recebidos",feito:false},
 
-{
-nome:"Extratos recebidos",
-feito:false
-},
+{nome:"Faturas recebidas",feito:false},
 
+{nome:"Conciliação realizada",feito:false},
 
-{
-nome:"Faturas recebidas",
-feito:false
-},
+{nome:"DRE fechado",feito:false},
 
-
-{
-nome:"Conciliação realizada",
-feito:false
-},
-
-
-{
-nome:"DRE fechado",
-feito:false
-},
-
-
-{
-nome:"Relatório enviado",
-feito:false
-}
-
+{nome:"Relatório enviado",feito:false}
 
 ]
 
-
 }
-
 
 
 
@@ -131,6 +89,68 @@ setNomeCliente("")
 
 setMostrarCadastro(false)
 
+}
+
+
+
+
+
+
+
+
+function alterarChecklist(clienteId:number,tarefaNome:string){
+
+
+const atualizado = clientesBPO.map(cliente=>{
+
+
+if(cliente.id === clienteId){
+
+
+return {
+
+...cliente,
+
+
+tarefas:cliente.tarefas.map((tarefa:any)=>{
+
+
+if(tarefa.nome === tarefaNome){
+
+
+return {
+
+...tarefa,
+
+feito:!tarefa.feito
+
+}
+
+
+}
+
+
+return tarefa
+
+
+})
+
+
+}
+
+
+}
+
+
+return cliente
+
+
+})
+
+
+
+setClientesBPO(atualizado)
+
 
 }
 
@@ -141,18 +161,12 @@ setMostrarCadastro(false)
 
 
 
-
-
 return(
-
 
 <div>
 
 
-
-
 <section className="dashboard-header">
-
 
 
 <div>
@@ -165,7 +179,6 @@ MÓDULO BPO
 </p>
 
 
-
 <h1>
 
 Gestão BPO Clientes 📂
@@ -173,19 +186,14 @@ Gestão BPO Clientes 📂
 </h1>
 
 
-
 <p>
 
-Controle mensal de documentos, conciliações e fechamentos.
+Controle de documentos, conciliação e fechamento mensal.
 
 </p>
 
 
-
 </div>
-
-
-
 
 
 
@@ -202,9 +210,7 @@ onClick={()=>setMostrarCadastro(true)}
 </button>
 
 
-
 </section>
-
 
 
 
@@ -216,81 +222,56 @@ onClick={()=>setMostrarCadastro(true)}
 {mostrarCadastro && (
 
 
-
 <section className="content-card">
-
 
 
 <h2>
 
-➕ Novo Cliente BPO
+Novo Cliente BPO
 
 </h2>
 
 
 
-
-
 <input
 
-
 className="input"
-
 
 placeholder="Nome do cliente"
 
-
 value={nomeCliente}
-
 
 onChange={(e)=>setNomeCliente(e.target.value)}
 
-
 />
-
-
-
 
 
 
 <input
 
-
 className="input"
-
 
 placeholder="Competência"
 
-
 value={competencia}
-
 
 onChange={(e)=>setCompetencia(e.target.value)}
 
-
 />
-
-
 
 
 
 <button
 
-
 className="primary-button"
-
 
 onClick={adicionarCliente}
 
-
 >
 
-
-Salvar Cliente
-
+Salvar
 
 </button>
-
 
 
 
@@ -310,7 +291,6 @@ Salvar Cliente
 <section className="stats-grid">
 
 
-
 <div className="stat-card">
 
 
@@ -324,7 +304,11 @@ Salvar Cliente
 </strong>
 
 
-<span>Total cadastrados</span>
+<span>
+
+Operações cadastradas
+
+</span>
 
 
 </div>
@@ -333,78 +317,28 @@ Salvar Cliente
 
 
 
-
 <div className="stat-card gold">
 
 
-<p>Aguardando</p>
+<p>Pendentes</p>
 
 
 <strong>
-
 
 {
-
 clientesBPO.filter(
-
 c=>c.status==="Aguardando documentos"
-
 ).length
-
-
 }
 
-
 </strong>
 
 
-<span>Pendências</span>
+<span>
 
+Acompanhamento
 
-</div>
-
-
-
-
-
-
-<div className="stat-card">
-
-
-<p>Processando</p>
-
-
-<strong>
-
-0
-
-</strong>
-
-
-<span>Em fechamento</span>
-
-
-</div>
-
-
-
-
-
-
-<div className="stat-card gold">
-
-
-<p>Finalizados</p>
-
-
-<strong>
-
-0
-
-</strong>
-
-
-<span>Relatórios enviados</span>
+</span>
 
 
 </div>
@@ -426,26 +360,22 @@ c=>c.status==="Aguardando documentos"
 <section className="content-card">
 
 
-
 <h2>
 
-📂 Operação Mensal BPO
+📂 Fechamentos Mensais
 
 </h2>
 
 
 
 
-
 {clientesBPO.length===0 && (
-
 
 <p>
 
-Nenhum cliente BPO cadastrado.
+Nenhum cliente cadastrado.
 
 </p>
-
 
 )}
 
@@ -455,21 +385,16 @@ Nenhum cliente BPO cadastrado.
 
 
 
-{clientesBPO.map((cliente)=>(
-
+{clientesBPO.map(cliente=>(
 
 
 <div
 
-
 className="cliente-alerta"
-
 
 key={cliente.id}
 
-
 >
-
 
 
 <span>
@@ -484,13 +409,11 @@ key={cliente.id}
 <div>
 
 
-
 <h3>
 
 {cliente.nome}
 
 </h3>
-
 
 
 <p>
@@ -500,23 +423,16 @@ Competência: {cliente.competencia}
 </p>
 
 
-
-
 <strong>
 
-Status: {cliente.status}
+{cliente.status}
 
 </strong>
 
 
-
-
-
-
 <br/>
 
 <br/>
-
 
 
 
@@ -525,7 +441,21 @@ Status: {cliente.status}
 
 
 
-<p key={tarefa.nome}>
+<p
+
+key={tarefa.nome}
+
+onClick={()=>alterarChecklist(
+
+cliente.id,
+
+tarefa.nome
+
+)}
+
+style={{cursor:"pointer"}}
+
+>
 
 
 {tarefa.feito ? "✅":"⬜"} {tarefa.nome}
@@ -542,9 +472,7 @@ Status: {cliente.status}
 </div>
 
 
-
 </div>
-
 
 
 ))}
@@ -559,9 +487,7 @@ Status: {cliente.status}
 
 </div>
 
-
 )
-
 
 }
 
