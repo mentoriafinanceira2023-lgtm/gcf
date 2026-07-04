@@ -1,7 +1,51 @@
+const clientesBPO = [
+
+  {
+    nome: "VIP Podas",
+    competencia: "Julho/2026",
+    status: "Aguardando documentos",
+    cor: "🟡",
+    tarefas: [
+      { nome: "Extratos recebidos", feito: false },
+      { nome: "Faturas recebidas", feito: false },
+      { nome: "Conciliação realizada", feito: false },
+      { nome: "DRE fechado", feito: false },
+      { nome: "Relatório enviado", feito: false },
+    ],
+  },
+
+  {
+    nome: "Salão Suellen",
+    competencia: "Julho/2026",
+    status: "Em processamento",
+    cor: "🔵",
+    tarefas: [
+      { nome: "Extratos recebidos", feito: true },
+      { nome: "Faturas recebidas", feito: true },
+      { nome: "Conciliação realizada", feito: false },
+      { nome: "DRE fechado", feito: false },
+      { nome: "Relatório enviado", feito: false },
+    ],
+  },
+
+  {
+    nome: "Farmácia Karina",
+    competencia: "Julho/2026",
+    status: "Fechado",
+    cor: "🟢",
+    tarefas: [
+      { nome: "Extratos recebidos", feito: true },
+      { nome: "Faturas recebidas", feito: true },
+      { nome: "Conciliação realizada", feito: true },
+      { nome: "DRE fechado", feito: true },
+      { nome: "Relatório enviado", feito: true },
+    ],
+  },
+
+]
+
+
 function BPOPage() {
-
-
-const processos = []
 
 
 return (
@@ -11,36 +55,30 @@ return (
 
 <section className="dashboard-header">
 
-
 <div>
-
 
 <p className="tag">
 MÓDULO BPO
 </p>
 
-
 <h1>
-Gestão Operacional BPO 📂
+Gestão BPO Clientes 📂
 </h1>
 
-
 <p>
-Controle documentos, conciliações e fechamentos financeiros dos clientes.
+Controle mensal de documentos, conciliações e fechamentos.
 </p>
-
 
 </div>
 
 
 <button className="primary-button">
-
-+ Novo Processo
-
++ Novo Cliente BPO
 </button>
 
 
 </section>
+
 
 
 
@@ -52,226 +90,131 @@ Controle documentos, conciliações e fechamentos financeiros dos clientes.
 
 <p>Clientes BPO</p>
 
-<strong>
-0
-</strong>
+<strong>{clientesBPO.length}</strong>
 
-<span>
-Operações cadastradas
-</span>
+<span>Total cadastrados</span>
 
 </div>
-
 
 
 <div className="stat-card gold">
 
-<p>Aguardando Documentos</p>
+<p>Aguardando</p>
 
 <strong>
-0
+1
 </strong>
 
-<span>
-Pendências de clientes
-</span>
+<span>Falta documentação</span>
 
 </div>
-
 
 
 <div className="stat-card">
 
-<p>Em Processamento</p>
+<p>Processando</p>
 
 <strong>
-0
+1
 </strong>
 
-<span>
-Conciliações abertas
-</span>
+<span>Em fechamento</span>
 
 </div>
-
 
 
 <div className="stat-card gold">
 
-<p>Fechados no mês</p>
+<p>Finalizados</p>
 
 <strong>
-0
+1
 </strong>
+
+<span>Mês concluído</span>
+
+</div>
+
+
+</section>
+
+
+
+
+
+<section className="content-card">
+
+
+<h2>
+📂 Operação Mensal BPO
+</h2>
+
+
+<p>
+Acompanhamento dos clientes ativos.
+</p>
+
+
+
+
+{clientesBPO.map((cliente)=>(
+
+
+<div className="cliente-alerta" key={cliente.nome}>
+
 
 <span>
-Relatórios enviados
+{cliente.cor}
 </span>
 
-</div>
 
+<div style={{width:"100%"}}>
 
-</section>
-
-
-
-
-<section className="content-card">
-
-
-<h2>
-📥 Central de Documentos
-</h2>
-
-
-<p>
-Recebimento e organização dos arquivos financeiros.
-</p>
-
-
-
-<div className="action-grid">
-
-
-<div className="mini-card">
 
 <h3>
-🏦 Extratos Bancários
+{cliente.nome}
 </h3>
 
-<p>
-Nenhum arquivo enviado.
-</p>
-
-</div>
-
-
-
-<div className="mini-card">
-
-<h3>
-💳 Cartões
-</h3>
 
 <p>
-Nenhuma fatura recebida.
+Competência: {cliente.competencia}
 </p>
 
-</div>
-
-
-
-<div className="mini-card">
-
-<h3>
-📑 Comprovantes
-</h3>
-
-<p>
-Nenhum documento pendente.
-</p>
-
-</div>
-
-
-</div>
-
-
-</section>
-
-
-
-
-
-<section className="content-card">
-
-
-<h2>
-✅ Checklist de Fechamento
-</h2>
-
-
-
-<div className="cliente-alerta">
-
-<span>⬜</span>
-
-<div>
 
 <strong>
-Receber documentos
+Status: {cliente.status}
 </strong>
 
-<p>
-Extratos, cartões e comprovantes.
+
+
+<div style={{marginTop:"15px"}}>
+
+
+{cliente.tarefas.map((item)=>(
+
+
+<p key={item.nome}>
+
+{item.feito ? "✅" : "⬜"} {item.nome}
+
 </p>
 
-</div>
 
-</div>
+))}
 
-
-
-
-<div className="cliente-alerta">
-
-<span>⬜</span>
-
-<div>
-
-<strong>
-Realizar conciliação
-</strong>
-
-<p>
-Conferência das movimentações.
-</p>
-
-</div>
 
 </div>
 
 
 
-
-<div className="cliente-alerta">
-
-<span>⬜</span>
-
-<div>
-
-<strong>
-Gerar DRE
-</strong>
-
-<p>
-Resultado financeiro mensal.
-</p>
-
 </div>
+
 
 </div>
 
 
+))}
 
-
-<div className="cliente-alerta">
-
-<span>⬜</span>
-
-<div>
-
-<strong>
-Enviar relatório ao cliente
-</strong>
-
-<p>
-Finalização do ciclo BPO.
-</p>
-
-</div>
-
-</div>
 
 
 
