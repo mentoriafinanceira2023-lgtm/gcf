@@ -10,25 +10,36 @@ const [nomeCliente,setNomeCliente] = useState("")
 
 const [competencia,setCompetencia] = useState("Julho/2026")
 
+const [prazo,setPrazo] = useState("2026-08-10")
+
 
 
 const [clientesBPO,setClientesBPO] = useState<any[]>(()=>{
 
+
 const dados = localStorage.getItem("gfa-bpo-clientes")
 
+
 return dados ? JSON.parse(dados) : []
+
 
 })
 
 
 
 
+
 useEffect(()=>{
 
+
 localStorage.setItem(
+
 "gfa-bpo-clientes",
+
 JSON.stringify(clientesBPO)
+
 )
+
 
 },[clientesBPO])
 
@@ -36,10 +47,10 @@ JSON.stringify(clientesBPO)
 
 
 
+
+
 function calcularStatus(tarefas:any[]){
 
-
-const total = tarefas.length
 
 const feitas = tarefas.filter(
 t=>t.feito
@@ -57,8 +68,7 @@ cor:"🟡"
 }
 
 
-
-if(feitas === total){
+if(feitas === tarefas.length){
 
 return {
 texto:"Fechamento concluído",
@@ -66,7 +76,6 @@ cor:"🟢"
 }
 
 }
-
 
 
 return {
@@ -83,41 +92,100 @@ cor:"🔵"
 
 
 
+function verificarPrazo(data:string){
+
+
+const hoje = new Date()
+
+const limite = new Date(data)
+
+
+if(hoje > limite){
+
+
+return "🔴 Atrasado"
+
+
+}
+
+
+return "🟢 Dentro do prazo"
+
+
+}
+
+
+
+
+
+
 
 
 function adicionarCliente(){
 
 
+
 if(nomeCliente.trim()===""){
+
 return
+
 }
 
 
 
 const novoCliente = {
 
+
 id:Date.now(),
 
+
 nome:nomeCliente,
+
 
 competencia,
 
 
+prazo,
+
+
 tarefas:[
 
-{nome:"Extratos recebidos",feito:false},
 
-{nome:"Faturas recebidas",feito:false},
+{
+nome:"Extratos recebidos",
+feito:false
+},
 
-{nome:"Conciliação realizada",feito:false},
 
-{nome:"DRE fechado",feito:false},
+{
+nome:"Faturas recebidas",
+feito:false
+},
 
-{nome:"Relatório enviado",feito:false}
+
+{
+nome:"Conciliação realizada",
+feito:false
+},
+
+
+{
+nome:"DRE fechado",
+feito:false
+},
+
+
+{
+nome:"Relatório enviado",
+feito:false
+}
+
 
 ]
 
+
 }
+
 
 
 
@@ -130,9 +198,11 @@ novoCliente
 ])
 
 
+
 setNomeCliente("")
 
 setMostrarCadastro(false)
+
 
 }
 
@@ -143,16 +213,21 @@ setMostrarCadastro(false)
 
 
 
-function alterarChecklist(clienteId:number,tarefaNome:string){
+
+function alterarChecklist(id:number,tarefaNome:string){
+
 
 
 const atualizado = clientesBPO.map(cliente=>{
 
 
-if(cliente.id === clienteId){
+
+if(cliente.id===id){
+
 
 
 return {
+
 
 ...cliente,
 
@@ -160,7 +235,7 @@ return {
 tarefas:cliente.tarefas.map((tarefa:any)=>{
 
 
-if(tarefa.nome === tarefaNome){
+if(tarefa.nome===tarefaNome){
 
 
 return {
@@ -187,10 +262,13 @@ return tarefa
 }
 
 
+
 return cliente
 
 
+
 })
+
 
 
 
@@ -207,9 +285,14 @@ setClientesBPO(atualizado)
 
 
 
+
+
 return(
 
+
 <div>
+
+
 
 
 
@@ -226,6 +309,7 @@ MÓDULO BPO
 </p>
 
 
+
 <h1>
 
 Gestão Operacional BPO 📂
@@ -233,14 +317,17 @@ Gestão Operacional BPO 📂
 </h1>
 
 
+
 <p>
 
-Controle inteligente de fechamentos financeiros.
+Controle de documentos, prazos e fechamentos.
 
 </p>
 
 
 </div>
+
+
 
 
 
@@ -252,9 +339,12 @@ onClick={()=>setMostrarCadastro(true)}
 
 >
 
+
 + Novo Cliente BPO
 
+
 </button>
+
 
 
 </section>
@@ -265,13 +355,22 @@ onClick={()=>setMostrarCadastro(true)}
 
 
 
+
+
 {mostrarCadastro && (
+
 
 
 <section className="content-card">
 
 
-<h2>Novo Cliente</h2>
+
+<h2>
+
+Novo Cliente BPO
+
+</h2>
+
 
 
 
@@ -279,7 +378,7 @@ onClick={()=>setMostrarCadastro(true)}
 
 className="input"
 
-placeholder="Nome do cliente"
+placeholder="Nome cliente"
 
 value={nomeCliente}
 
@@ -289,15 +388,36 @@ onChange={(e)=>setNomeCliente(e.target.value)}
 
 
 
+
+
 <input
 
 className="input"
+
+placeholder="Competência"
 
 value={competencia}
 
 onChange={(e)=>setCompetencia(e.target.value)}
 
 />
+
+
+
+
+
+<input
+
+className="input"
+
+type="date"
+
+value={prazo}
+
+onChange={(e)=>setPrazo(e.target.value)}
+
+/>
+
 
 
 
@@ -319,6 +439,7 @@ Salvar Cliente
 
 
 )}
+
 
 
 
@@ -365,13 +486,13 @@ Operações cadastradas
 
 
 
-
 <section className="content-card">
+
 
 
 <h2>
 
-📋 Controle de Fechamentos
+📋 Controle Mensal BPO
 
 </h2>
 
@@ -381,7 +502,13 @@ Operações cadastradas
 
 {clientesBPO.length===0 && (
 
-<p>Nenhum cliente cadastrado.</p>
+
+<p>
+
+Nenhum cliente cadastrado.
+
+</p>
+
 
 )}
 
@@ -396,8 +523,8 @@ Operações cadastradas
 const status = calcularStatus(cliente.tarefas)
 
 
-
 return(
+
 
 
 <div
@@ -410,6 +537,7 @@ key={cliente.id}
 
 
 
+
 <span>
 
 {status.cor}
@@ -418,7 +546,9 @@ key={cliente.id}
 
 
 
+
 <div>
+
 
 
 <h3>
@@ -428,11 +558,23 @@ key={cliente.id}
 </h3>
 
 
+
 <p>
 
 Competência: {cliente.competencia}
 
 </p>
+
+
+
+
+<p>
+
+Prazo: {cliente.prazo}
+
+</p>
+
+
 
 
 <strong>
@@ -442,9 +584,19 @@ Competência: {cliente.competencia}
 </strong>
 
 
-<br/>
+
+<p>
+
+{verificarPrazo(cliente.prazo)}
+
+</p>
+
+
+
+
 
 <br/>
+
 
 
 
@@ -457,6 +609,8 @@ Competência: {cliente.competencia}
 
 key={tarefa.nome}
 
+style={{cursor:"pointer"}}
+
 onClick={()=>alterarChecklist(
 
 cliente.id,
@@ -464,8 +618,6 @@ cliente.id,
 tarefa.nome
 
 )}
-
-style={{cursor:"pointer"}}
 
 >
 
@@ -496,6 +648,7 @@ style={{cursor:"pointer"}}
 
 
 </section>
+
 
 
 
