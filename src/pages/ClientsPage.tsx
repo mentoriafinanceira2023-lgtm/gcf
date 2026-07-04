@@ -1,115 +1,793 @@
-import { useEffect, useMemo, useState } from 'react'
-import ClientList from '../components/ClientList'
-import ClientModal from '../components/ClientModal'
-import type { Client, ClientFormValues } from '../types/client'
+import { useEffect, useState } from "react"
 
-const STORAGE_KEY = 'gcf-clients'
 
-const createClient = (values: ClientFormValues): Client => ({
-  id: crypto.randomUUID(),
-  ...values,
+function ClientsPage(){
+
+
+const [clientes,setClientes] = useState<any[]>(()=>{
+
+const dados = localStorage.getItem("gfa-clientes")
+
+return dados ? JSON.parse(dados) : []
+
 })
 
-function ClientsPage() {
-  const [clients, setClients] = useState<Client[]>([])
-  const [searchTerm, setSearchTerm] = useState('')
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create')
-  const [selectedClient, setSelectedClient] = useState<Client | undefined>()
 
-  useEffect(() => {
-    const savedClients = localStorage.getItem(STORAGE_KEY)
-    if (savedClients) {
-      setClients(JSON.parse(savedClients))
-    }
-  }, [])
+const [cadastro,setCadastro] = useState(false)
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(clients))
-  }, [clients])
+const [clienteAberto,setClienteAberto] = useState<any>(null)
 
-  const handleCreate = () => {
-    setModalMode('create')
-    setSelectedClient(undefined)
-    setIsModalOpen(true)
-  }
 
-  const handleEdit = (client: Client) => {
-    setModalMode('edit')
-    setSelectedClient(client)
-    setIsModalOpen(true)
-  }
 
-  const handleSave = (values: ClientFormValues) => {
-    if (modalMode === 'edit' && selectedClient) {
-      setClients((prev) =>
-        prev.map((client) => (client.id === selectedClient.id ? { ...client, ...values } : client)),
-      )
-      return
-    }
+const [form,setForm] = useState({
 
-    setClients((prev) => [createClient(values), ...prev])
-  }
+empresa:"",
+responsavel:"",
+telefone:"",
+servico:"BPO Financeiro",
+status:"Ativo",
+valor:"",
+observacao:""
 
-  const handleDelete = (id: string) => {
-    setClients((prev) => prev.filter((client) => client.id !== id))
-  }
+})
 
-  const summary = useMemo(() => {
-    const active = clients.filter((client) => client.status === 'Ativo').length
-    const paused = clients.filter((client) => client.status === 'Pausado').length
-    const finished = clients.filter((client) => client.status === 'Finalizado').length
 
-    return { active, paused, finished }
-  }, [clients])
 
-  return (
-    <div className="page-content">
-      <div className="page-header">
-        <div>
-          <p className="eyebrow">Módulo clientes</p>
-          <h2>Clientes</h2>
-        </div>
-        <button type="button" className="primary-btn" onClick={handleCreate}>
-          Novo Cliente
-        </button>
-      </div>
 
-      <div className="summary-grid">
-        <article className="summary-card">
-          <strong>{summary.active}</strong>
-          <span>Ativos</span>
-        </article>
-        <article className="summary-card">
-          <strong>{summary.paused}</strong>
-          <span>Pausados</span>
-        </article>
-        <article className="summary-card">
-          <strong>{summary.finished}</strong>
-          <span>Finalizados</span>
-        </article>
-      </div>
 
-      <div className="search-bar">
-        <input
-          type="search"
-          placeholder="Pesquisar por nome, empresa ou e-mail"
-          value={searchTerm}
-          onChange={(event) => setSearchTerm(event.target.value)}
-        />
-      </div>
+useEffect(()=>{
 
-      <ClientList clients={clients} searchTerm={searchTerm} onEdit={handleEdit} onDelete={handleDelete} />
+localStorage.setItem(
 
-      <ClientModal
-        isOpen={isModalOpen}
-        mode={modalMode}
-        initialValues={selectedClient}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleSave}
-      />
-    </div>
-  )
+"gfa-clientes",
+
+JSON.stringify(clientes)
+
+)
+
+},[clientes])
+
+
+
+
+
+
+const servicos=[
+
+"BPO Financeiro",
+
+"Consultoria Empresarial",
+
+"Mentoria Individual",
+
+"Consultoria Financeira",
+
+"Diagnóstico Financeiro",
+
+"Outros"
+
+]
+
+
+
+
+
+
+
+function salvarCliente(){
+
+
+if(form.empresa.trim()===""){
+
+return
+
 }
+
+
+
+const novo={
+
+id:Date.now(),
+
+...form,
+
+criado:new Date().toLocaleDateString()
+
+}
+
+
+
+setClientes([
+
+...clientes,
+
+novo
+
+])
+
+
+
+setForm({
+
+empresa:"",
+responsavel:"",
+telefone:"",
+servico:"BPO Financeiro",
+status:"Ativo",
+valor:"",
+observacao:""
+
+})
+
+
+setCadastro(false)
+
+}
+
+
+
+
+
+
+
+
+function excluirCliente(id:number){
+
+
+if(!confirm("Excluir cliente?")){
+
+return
+
+}
+
+
+setClientes(
+
+clientes.filter(c=>c.id!==id)
+
+)
+
+
+setClienteAberto(null)
+
+
+}
+
+
+
+
+
+
+
+
+
+const clientesOrdenados=[...clientes].sort(
+
+(a,b)=>a.empresa.localeCompare(b.empresa)
+
+)
+
+
+
+
+
+
+
+
+return(
+
+<div>
+
+
+
+
+
+<section className="dashboard-header">
+
+
+<div>
+
+
+<p className="tag">
+
+CRM GFA
+
+</p>
+
+
+
+<h1>
+
+Clientes 👥
+
+</h1>
+
+
+
+<p>
+
+Carteira central de clientes e contratos.
+
+</p>
+
+
+</div>
+
+
+
+
+
+<button
+
+className="primary-button"
+
+onClick={()=>setCadastro(true)}
+
+>
+
++ Novo Cliente
+
+</button>
+
+
+
+</section>
+
+
+
+
+
+
+
+
+
+
+<section className="stats-grid">
+
+
+<div className="stat-card">
+
+<p>Total</p>
+
+<strong>{clientes.length}</strong>
+
+</div>
+
+
+
+
+<div className="stat-card gold">
+
+<p>Receita mensal</p>
+
+<strong>
+
+
+R$ {
+
+
+clientes.reduce(
+
+(t,c)=>t+Number(c.valor||0)
+
+,0)
+
+
+}
+
+
+</strong>
+
+</div>
+
+
+
+
+
+<div className="stat-card">
+
+
+<p>Ativos</p>
+
+
+<strong>
+
+
+{
+
+clientes.filter(
+
+c=>c.status==="Ativo"
+
+).length
+
+}
+
+
+</strong>
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+
+
+
+
+{cadastro && (
+
+
+<div className="content-card">
+
+
+<h2>
+
+➕ Novo Cliente
+
+</h2>
+
+
+
+
+<input
+
+className="input"
+
+placeholder="Cliente / Empresa"
+
+value={form.empresa}
+
+onChange={e=>setForm({...form,empresa:e.target.value})}
+
+/>
+
+
+
+
+<input
+
+className="input"
+
+placeholder="Responsável"
+
+value={form.responsavel}
+
+onChange={e=>setForm({...form,responsavel:e.target.value})}
+
+/>
+
+
+
+
+<input
+
+className="input"
+
+placeholder="Telefone"
+
+value={form.telefone}
+
+onChange={e=>setForm({...form,telefone:e.target.value})}
+
+/>
+
+
+
+
+
+
+<select
+
+className="input"
+
+value={form.servico}
+
+onChange={e=>setForm({...form,servico:e.target.value})}
+
+>
+
+
+{servicos.map(s=>(
+
+<option key={s}>{s}</option>
+
+))}
+
+
+</select>
+
+
+
+
+
+
+
+<select
+
+className="input"
+
+value={form.status}
+
+onChange={e=>setForm({...form,status:e.target.value})}
+
+>
+
+
+<option>Ativo</option>
+
+<option>Proposta</option>
+
+<option>Implantação</option>
+
+<option>Pausado</option>
+
+<option>Encerrado</option>
+
+
+</select>
+
+
+
+
+
+
+
+<input
+
+className="input"
+
+placeholder="Valor mensal"
+
+value={form.valor}
+
+onChange={e=>setForm({...form,valor:e.target.value})}
+
+/>
+
+
+
+
+
+
+<textarea
+
+className="input"
+
+placeholder="Observações"
+
+value={form.observacao}
+
+onChange={e=>setForm({...form,observacao:e.target.value})}
+
+/>
+
+
+
+
+
+
+<button
+
+className="primary-button"
+
+onClick={salvarCliente}
+
+>
+
+Salvar
+
+</button>
+
+
+
+
+<button
+
+className="primary-button"
+
+style={{marginLeft:"10px"}}
+
+onClick={()=>setCadastro(false)}
+
+>
+
+Cancelar
+
+</button>
+
+
+
+
+</div>
+
+
+)}
+
+
+
+
+
+
+
+
+
+<section className="content-card">
+
+
+<h2>
+
+📋 Lista de Clientes
+
+</h2>
+
+
+
+
+
+
+{clientesOrdenados.map(cliente=>(
+
+
+
+<div
+
+className="cliente-alerta"
+
+key={cliente.id}
+
+>
+
+
+<div
+
+style={{
+
+display:"flex",
+
+justifyContent:"space-between",
+
+alignItems:"center",
+
+width:"100%"
+
+}}
+
+>
+
+
+
+
+<div>
+
+
+
+<strong>
+
+🏢 {cliente.empresa}
+
+</strong>
+
+
+
+<p>
+
+{cliente.servico}
+
+</p>
+
+
+
+</div>
+
+
+
+
+
+
+<div>
+
+
+<span>
+
+
+{
+
+cliente.status==="Ativo"
+
+?
+
+"🟢 Ativo"
+
+:
+
+"🟡 "+cliente.status
+
+}
+
+
+</span>
+
+
+
+{" "}
+
+
+
+
+<button
+
+className="primary-button"
+
+onClick={()=>setClienteAberto(cliente)}
+
+>
+
+Detalhes
+
+</button>
+
+
+
+
+</div>
+
+
+
+</div>
+
+
+</div>
+
+
+
+))}
+
+
+
+
+</section>
+
+
+
+
+
+
+
+
+
+{clienteAberto && (
+
+
+<section className="content-card">
+
+
+<h2>
+
+🏢 {clienteAberto.empresa}
+
+</h2>
+
+
+
+
+<p>
+
+👤 Responsável: {clienteAberto.responsavel}
+
+</p>
+
+
+
+<p>
+
+📱 Telefone: {clienteAberto.telefone}
+
+</p>
+
+
+
+<p>
+
+📂 Serviço: {clienteAberto.servico}
+
+</p>
+
+
+
+
+<p>
+
+📌 Status: {clienteAberto.status}
+
+</p>
+
+
+
+
+<p>
+
+💰 Valor mensal: R$ {clienteAberto.valor}
+
+</p>
+
+
+
+<p>
+
+📅 Cadastro: {clienteAberto.criado}
+
+</p>
+
+
+
+
+<p>
+
+📝 {clienteAberto.observacao}
+
+</p>
+
+
+
+
+
+<button
+
+className="primary-button"
+
+onClick={()=>setClienteAberto(null)}
+
+>
+
+Fechar
+
+</button>
+
+
+
+
+
+<button
+
+className="primary-button"
+
+style={{marginLeft:"10px"}}
+
+onClick={()=>excluirCliente(clienteAberto.id)}
+
+>
+
+Excluir Cliente
+
+</button>
+
+
+
+</section>
+
+
+)}
+
+
+
+
+
+
+</div>
+
+)
+
+
+}
+
+
 
 export default ClientsPage
