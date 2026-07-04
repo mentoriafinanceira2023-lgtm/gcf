@@ -4,6 +4,8 @@ import { useEffect, useState } from "react"
 function BPOPage(){
 
 
+const [competencia,setCompetencia] = useState("Julho/2026")
+
 const [clientes,setClientes] = useState<any[]>(()=>{
 
 const dados = localStorage.getItem("gfa-bpo-clientes")
@@ -25,10 +27,15 @@ const [aberto,setAberto] = useState<number | null>(null)
 
 useEffect(()=>{
 
+
 localStorage.setItem(
+
 "gfa-bpo-clientes",
+
 JSON.stringify(clientes)
+
 )
+
 
 },[clientes])
 
@@ -37,24 +44,25 @@ JSON.stringify(clientes)
 
 
 
-function progresso(tarefas:any[] = []){
+function progresso(tarefas:any[]){
 
 
-if(tarefas.length===0){
+if(!tarefas || tarefas.length===0){
 
 return 0
 
 }
 
 
-const feitas = tarefas.filter(
-t=>t.feito
-).length
+const feitas = tarefas.filter(t=>t.feito).length
 
 
 return Math.round(
+
 (feitas/tarefas.length)*100
+
 )
+
 
 }
 
@@ -68,7 +76,7 @@ function status(p:number){
 
 if(p===0){
 
-return "🟡 Aguardando documentos"
+return "🟡 Aguardando"
 
 }
 
@@ -80,7 +88,7 @@ return "🟢 Fechado"
 }
 
 
-return "🔵 Em processamento"
+return "🔵 Em execução"
 
 
 }
@@ -93,7 +101,7 @@ return "🔵 Em processamento"
 
 
 
-function novoCliente(){
+function criarCliente(){
 
 
 if(!nome){
@@ -104,38 +112,68 @@ return
 
 
 
-const cliente={
+const novo={
+
 
 id:Date.now(),
 
+
 nome,
 
-competencia:"Julho/2026",
 
-observacao:"",
+competencia,
+
 
 documentos:[],
 
-ultimaAtualizacao:new Date().toLocaleDateString(),
+
+observacao:"",
 
 
 tarefas:[
 
-{nome:"Extratos bancários recebidos",feito:false},
 
-{nome:"Faturas cartão recebidas",feito:false},
+{
+nome:"Extratos recebidos",
+feito:false
+},
 
-{nome:"Importação realizada",feito:false},
 
-{nome:"Conciliação finalizada",feito:false},
+{
+nome:"Faturas recebidas",
+feito:false
+},
 
-{nome:"DRE atualizado",feito:false},
 
-{nome:"Relatório enviado",feito:false}
+{
+nome:"Importação realizada",
+feito:false
+},
+
+
+{
+nome:"Conciliação concluída",
+feito:false
+},
+
+
+{
+nome:"DRE atualizado",
+feito:false
+},
+
+
+{
+nome:"Relatório enviado",
+feito:false
+}
+
 
 ]
 
+
 }
+
 
 
 
@@ -143,7 +181,7 @@ setClientes([
 
 ...clientes,
 
-cliente
+novo
 
 ])
 
@@ -162,25 +200,27 @@ setMostrar(false)
 
 
 
+
 function alterarChecklist(id:number,tarefaNome:string){
 
 
 setClientes(
 
-clientes.map(c=>{
+
+clientes.map(cliente=>{
 
 
-if(c.id===id){
+if(cliente.id===id){
+
 
 
 return{
 
 
-...c,
+...cliente,
 
-ultimaAtualizacao:new Date().toLocaleDateString(),
 
-tarefas:(c.tarefas || []).map((t:any)=>{
+tarefas:cliente.tarefas.map((t:any)=>{
 
 
 if(t.nome===tarefaNome){
@@ -193,6 +233,7 @@ return{
 feito:!t.feito
 
 }
+
 
 }
 
@@ -209,50 +250,7 @@ return t
 }
 
 
-return c
-
-
-})
-
-
-)
-
-
-}
-
-
-
-
-
-
-
-
-function salvarObservacao(id:number,texto:string){
-
-
-setClientes(
-
-
-clientes.map(c=>{
-
-
-if(c.id===id){
-
-
-return{
-
-...c,
-
-observacao:texto,
-
-ultimaAtualizacao:new Date().toLocaleDateString()
-
-}
-
-}
-
-
-return c
+return cliente
 
 
 })
@@ -271,60 +269,11 @@ return c
 
 
 
-function adicionarDocumento(id:number,doc:string){
+const clientesMes = clientes.filter(
 
-
-if(!doc){
-
-return
-
-}
-
-
-
-setClientes(
-
-
-clientes.map(c=>{
-
-
-if(c.id===id){
-
-
-return{
-
-
-...c,
-
-documentos:[
-
-...(c.documentos || []),
-
-doc
-
-],
-
-ultimaAtualizacao:new Date().toLocaleDateString()
-
-}
-
-
-}
-
-
-return c
-
-
-})
-
+c=>c.competencia===competencia
 
 )
-
-
-}
-
-
-
 
 
 
@@ -340,6 +289,7 @@ return(
 
 
 
+
 <section className="dashboard-header">
 
 
@@ -348,27 +298,26 @@ return(
 
 <p className="tag">
 
-CENTRAL BPO GFA
+BPO GFA
 
 </p>
 
 
 <h1>
 
-Gestão Operacional Inteligente 🚀
+Calendário Operacional 📅
 
 </h1>
 
 
 <p>
 
-Clientes, documentos, processos e fechamento mensal.
+Controle mensal dos fechamentos financeiros.
 
 </p>
 
 
 </div>
-
 
 
 
@@ -380,117 +329,10 @@ onClick={()=>setMostrar(true)}
 
 >
 
-+ Cliente BPO
++ Cliente
 
 </button>
 
-
-
-</section>
-
-
-
-
-
-
-
-
-
-{mostrar && (
-
-
-<section className="content-card">
-
-
-<h2>Novo Cliente</h2>
-
-
-<input
-
-className="input"
-
-placeholder="Nome"
-
-value={nome}
-
-onChange={e=>setNome(e.target.value)}
-
-/>
-
-
-<button
-
-className="primary-button"
-
-onClick={novoCliente}
-
->
-
-Cadastrar
-
-</button>
-
-
-</section>
-
-
-)}
-
-
-
-
-
-
-
-
-
-<section className="stats-grid">
-
-
-<div className="stat-card">
-
-<p>Clientes</p>
-
-<strong>{clientes.length}</strong>
-
-</div>
-
-
-
-<div className="stat-card gold">
-
-<p>Ativos</p>
-
-<strong>
-
-{
-clientes.filter(
-c=>progresso(c.tarefas)<100
-).length
-}
-
-</strong>
-
-</div>
-
-
-
-
-<div className="stat-card">
-
-<p>Fechados</p>
-
-<strong>
-
-{
-clientes.filter(
-c=>progresso(c.tarefas)===100
-).length
-}
-
-</strong>
-
-</div>
 
 
 </section>
@@ -509,7 +351,234 @@ c=>progresso(c.tarefas)===100
 
 <h2>
 
-📂 Operações BPO
+📅 Competência
+
+</h2>
+
+
+
+
+<select
+
+className="input"
+
+value={competencia}
+
+onChange={e=>setCompetencia(e.target.value)}
+
+>
+
+
+<option>
+
+Junho/2026
+
+</option>
+
+
+<option>
+
+Julho/2026
+
+</option>
+
+
+<option>
+
+Agosto/2026
+
+</option>
+
+
+<option>
+
+Setembro/2026
+
+</option>
+
+
+
+</select>
+
+
+
+
+</section>
+
+
+
+
+
+
+
+
+
+
+{mostrar && (
+
+
+
+<section className="content-card">
+
+
+<h2>
+
+Novo cliente - {competencia}
+
+</h2>
+
+
+
+
+<input
+
+className="input"
+
+placeholder="Nome do cliente"
+
+value={nome}
+
+onChange={e=>setNome(e.target.value)}
+
+/>
+
+
+
+<button
+
+className="primary-button"
+
+onClick={criarCliente}
+
+>
+
+Salvar
+
+</button>
+
+
+
+</section>
+
+
+)}
+
+
+
+
+
+
+
+
+
+
+<section className="stats-grid">
+
+
+<div className="stat-card">
+
+
+<p>Clientes mês</p>
+
+
+<strong>
+
+{clientesMes.length}
+
+</strong>
+
+
+</div>
+
+
+
+
+
+
+<div className="stat-card gold">
+
+
+<p>Em andamento</p>
+
+
+<strong>
+
+
+{
+
+
+clientesMes.filter(c=>{
+
+const p=progresso(c.tarefas)
+
+return p>0 && p<100
+
+}).length
+
+
+}
+
+
+</strong>
+
+
+
+</div>
+
+
+
+
+
+
+
+<div className="stat-card">
+
+
+<p>Fechados</p>
+
+
+<strong>
+
+
+{
+
+
+clientesMes.filter(
+
+c=>progresso(c.tarefas)===100
+
+).length
+
+
+}
+
+
+</strong>
+
+
+
+</div>
+
+
+
+</section>
+
+
+
+
+
+
+
+
+
+
+
+<section className="content-card">
+
+
+<h2>
+
+📂 Fechamentos {competencia}
 
 </h2>
 
@@ -517,14 +586,36 @@ c=>progresso(c.tarefas)===100
 
 
 
-{clientes.map(cliente=>{
 
 
-const pct = progresso(cliente.tarefas)
+{clientesMes.length===0 && (
 
+
+<p>
+
+Nenhum cliente nesta competência.
+
+</p>
+
+
+)}
+
+
+
+
+
+
+
+
+
+{clientesMes.map(cliente=>{
+
+
+const pct=progresso(cliente.tarefas)
 
 
 return(
+
 
 
 <div
@@ -537,6 +628,7 @@ key={cliente.id}
 
 
 <div style={{width:"100%"}}>
+
 
 
 
@@ -558,11 +650,13 @@ key={cliente.id}
 
 
 
+
 <p>
 
-📊 Progresso: {pct}%
+Progresso: {pct}%
 
 </p>
+
 
 
 
@@ -581,19 +675,6 @@ style={{width:"100%"}}
 
 
 
-<p>
-
-📅 Atualizado:
-
-{" "}
-
-{cliente.ultimaAtualizacao || "Sem registro"}
-
-</p>
-
-
-
-
 
 <button
 
@@ -601,16 +682,23 @@ className="primary-button"
 
 onClick={()=>setAberto(
 
-aberto===cliente.id ? null : cliente.id
+aberto===cliente.id
+
+?
+
+null
+
+:
+
+cliente.id
 
 )}
 
 >
 
-Abrir Gestão
+Abrir Processo
 
 </button>
-
 
 
 
@@ -622,22 +710,15 @@ Abrir Gestão
 {aberto===cliente.id && (
 
 
-
 <div>
 
 
-
-<hr/>
-
-
-
-
-<h3>📋 Checklist</h3>
+<br/>
 
 
 
 
-{(cliente.tarefas || []).map((t:any)=>(
+{cliente.tarefas.map((t:any)=>(
 
 
 <p
@@ -656,6 +737,7 @@ t.nome
 
 >
 
+
 {t.feito?"✅":"⬜"} {t.nome}
 
 
@@ -663,94 +745,6 @@ t.nome
 
 
 ))}
-
-
-
-
-
-
-
-
-<h3>📎 Documentos</h3>
-
-
-
-{(cliente.documentos || []).map((d:string)=>(
-
-
-<p key={d}>
-
-📄 {d}
-
-</p>
-
-
-))}
-
-
-
-
-<input
-
-className="input"
-
-placeholder="Digite documento e aperte ENTER"
-
-onKeyDown={(e:any)=>{
-
-
-if(e.key==="Enter"){
-
-adicionarDocumento(
-
-cliente.id,
-
-e.target.value
-
-)
-
-e.target.value=""
-
-}
-
-
-}}
-
-/>
-
-
-
-
-
-
-
-
-
-<h3>📝 Observações internas</h3>
-
-
-
-<textarea
-
-className="input"
-
-value={cliente.observacao || ""}
-
-placeholder="Anotações sobre este cliente..."
-
-onChange={e=>
-
-salvarObservacao(
-
-cliente.id,
-
-e.target.value
-
-)
-
-}
-
-/>
 
 
 
@@ -765,8 +759,8 @@ e.target.value
 </div>
 
 
-
 </div>
+
 
 
 )
@@ -776,7 +770,9 @@ e.target.value
 
 
 
+
 </section>
+
 
 
 
@@ -784,6 +780,7 @@ e.target.value
 
 
 )
+
 
 }
 
