@@ -1,37 +1,14 @@
 import { useEffect, useState } from "react"
 
-
-function ClientsPage(){
-
-
-const [clientes,setClientes] = useState<any[]>(()=>{
-
-const dados = localStorage.getItem("gfa-clientes")
-
-return dados ? JSON.parse(dados) : []
-
-})
+import StatCard from "../components/StatCard"
 
 
-const [operacoes,setOperacoes] = useState<any[]>([])
-
-const [cadastro,setCadastro] = useState(false)
-
-const [clienteAberto,setClienteAberto] = useState<any>(null)
+function DashboardPage(){
 
 
+const [clientes,setClientes]=useState<any[]>([])
 
-const [form,setForm] = useState({
-
-empresa:"",
-responsavel:"",
-telefone:"",
-servico:"BPO Financeiro",
-status:"Ativo",
-valor:"",
-observacao:""
-
-})
+const [operacoes,setOperacoes]=useState<any[]>([])
 
 
 
@@ -40,55 +17,80 @@ observacao:""
 useEffect(()=>{
 
 
-localStorage.setItem(
+function carregar(){
 
-"gfa-clientes",
 
-JSON.stringify(clientes)
+const dadosClientes =
+localStorage.getItem("gfa-clientes")
+
+
+const dadosBpo =
+localStorage.getItem("gfa-bpo-operacoes")
+
+
+
+
+if(dadosClientes){
+
+setClientes(
+
+JSON.parse(dadosClientes)
 
 )
-
-
-const bpo = localStorage.getItem(
-
-"gfa-bpo-operacoes"
-
-)
-
-
-if(bpo){
-
-setOperacoes(JSON.parse(bpo))
 
 }
 
 
 
-},[clientes])
+
+if(dadosBpo){
+
+setOperacoes(
+
+JSON.parse(dadosBpo)
+
+)
+
+}
+
+
+
+}
 
 
 
 
+carregar()
 
 
 
+window.addEventListener(
+
+"storage",
+
+carregar
+
+)
 
 
-const servicos=[
 
-"BPO Financeiro",
+return ()=>{
 
-"Consultoria Empresarial",
 
-"Mentoria Individual",
+window.removeEventListener(
 
-"Consultoria Financeira",
+"storage",
 
-"Diagnóstico Financeiro",
+carregar
 
-"Outros"
+)
 
-]
+
+}
+
+
+
+},[])
 
 
 
@@ -108,11 +110,13 @@ return 0
 }
 
 
-const feitas = tarefas.filter(
+
+const feitas=tarefas.filter(
 
 t=>t.feito
 
 ).length
+
 
 
 return Math.round(
@@ -121,94 +125,8 @@ return Math.round(
 
 )
 
-}
-
-
-
-
-
-
-
-
-
-
-function salvarCliente(){
-
-
-
-if(!form.empresa){
-
-return
 
 }
-
-
-
-const novo={
-
-id:Date.now(),
-
-...form,
-
-criado:new Date().toLocaleDateString()
-
-}
-
-
-
-setClientes([...clientes,novo])
-
-
-setForm({
-
-empresa:"",
-responsavel:"",
-telefone:"",
-servico:"BPO Financeiro",
-status:"Ativo",
-valor:"",
-observacao:""
-
-})
-
-
-setCadastro(false)
-
-
-}
-
-
-
-
-
-
-
-
-
-function excluirCliente(id:number){
-
-
-if(!confirm("Excluir cliente?")){
-
-return
-
-}
-
-
-
-setClientes(
-
-clientes.filter(c=>c.id!==id)
-
-)
-
-
-
-setClienteAberto(null)
-
-
-}
-
 
 
 
@@ -220,7 +138,9 @@ setClienteAberto(null)
 
 const receita=clientes.reduce(
 
-(t,c)=>t+Number(c.valor||0)
+(total,c)=>
+
+total + Number(c.valor || 0)
 
 ,0)
 
@@ -228,13 +148,83 @@ const receita=clientes.reduce(
 
 
 
-const clientesOrdenados=[...clientes].sort(
-
-(a,b)=>a.empresa.localeCompare(b.empresa)
-
-)
 
 
+const ativos=clientes.filter(
+
+c=>c.status==="Ativo"
+
+).length
+
+
+
+
+
+
+
+
+const bpo=clientes.filter(
+
+c=>
+
+c.servico==="BPO Financeiro"
+
+).length
+
+
+
+
+
+
+
+
+const consultorias=clientes.filter(
+
+c=>
+
+c.servico.includes("Consultoria")
+
+).length
+
+
+
+
+
+
+
+const mentorias=clientes.filter(
+
+c=>
+
+c.servico==="Mentoria Individual"
+
+).length
+
+
+
+
+
+
+
+
+const processosAbertos=operacoes.filter(
+
+op=>progresso(op.tarefas)<100
+
+).length
+
+
+
+
+
+
+
+
+const fechados=operacoes.filter(
+
+op=>progresso(op.tarefas)===100
+
+).length
 
 
 
@@ -245,6 +235,7 @@ const clientesOrdenados=[...clientes].sort(
 return(
 
 <div>
+
 
 
 
@@ -265,34 +256,29 @@ color:"white"
 >
 
 
-<h1>
-
-Clientes 👥
-
-</h1>
-
-
 
 <p>
 
-Central 360° de relacionamento GFA.
+SISTEMA GFA
 
 </p>
 
 
 
+<h1>
 
-<button
+Dashboard Executivo 📊
 
-className="primary-button"
+</h1>
 
-onClick={()=>setCadastro(true)}
 
->
 
-+ Novo Cliente
 
-</button>
+<p>
+
+Visão consolidada de clientes, contratos e BPO.
+
+</p>
 
 
 
@@ -306,29 +292,34 @@ onClick={()=>setCadastro(true)}
 
 
 
-
 <section className="stats-grid">
 
 
-<div className="stat-card">
-
-<p>Total Clientes</p>
-
-<strong>{clientes.length}</strong>
-
-</div>
 
 
 
+<StatCard
+
+title="Clientes"
+
+value={String(clientes.length)}
+
+detail="Base cadastrada"
+
+accent="navy"
+
+/>
 
 
-<div className="stat-card gold">
 
-<p>Receita Mensal</p>
 
-<strong>
 
-{
+
+<StatCard
+
+title="Receita Mensal"
+
+value={
 
 receita.toLocaleString(
 
@@ -346,130 +337,28 @@ currency:"BRL"
 
 }
 
-</strong>
+detail="Contratos recorrentes"
 
-</div>
-
-
-
-
-
-<div className="stat-card">
-
-<p>Ativos</p>
-
-<strong>
-
-{
-
-clientes.filter(
-
-c=>c.status==="Ativo"
-
-).length
-
-}
-
-</strong>
-
-</div>
-
-
-</section>
-
-
-
-
-
-
-
-
-
-
-{cadastro && (
-
-
-<section
-
-className="content-card"
-
-style={{maxWidth:"850px"}}
-
->
-
-
-<h2>Novo Cliente</h2>
-
-
-
-
-<div
-
-style={{
-
-display:"grid",
-
-gridTemplateColumns:"1fr 1fr",
-
-gap:"14px"
-
-}}
-
->
-
-
-
-<input
-
-className="input"
-
-placeholder="Cliente"
-
-value={form.empresa}
-
-onChange={e=>
-
-setForm({...form,empresa:e.target.value})
-
-}
+accent="gold"
 
 />
 
 
 
 
-<input
-
-className="input"
-
-placeholder="Responsável"
-
-value={form.responsavel}
-
-onChange={e=>
-
-setForm({...form,responsavel:e.target.value})
-
-}
-
-/>
 
 
 
 
-<input
+<StatCard
 
-className="input"
+title="Ativos"
 
-placeholder="Telefone"
+value={String(ativos)}
 
-value={form.telefone}
+detail="Clientes ativos"
 
-onChange={e=>
-
-setForm({...form,telefone:e.target.value})
-
-}
+accent="navy"
 
 />
 
@@ -477,106 +366,26 @@ setForm({...form,telefone:e.target.value})
 
 
 
-<select
-
-className="input"
-
-value={form.servico}
-
-onChange={e=>
-
-setForm({...form,servico:e.target.value})
-
-}
-
->
-
-
-{servicos.map(s=>(
-
-<option key={s}>{s}</option>
-
-))}
-
-
-</select>
 
 
 
+<StatCard
 
+title="BPO"
 
+value={String(bpo)}
 
-<input
+detail="Operações financeiras"
 
-className="input"
-
-placeholder="Valor mensal"
-
-value={form.valor}
-
-onChange={e=>
-
-setForm({...form,valor:e.target.value})
-
-}
+accent="gold"
 
 />
 
-
-
-
-
-<textarea
-
-className="input"
-
-placeholder="Observações"
-
-value={form.observacao}
-
-style={{
-
-gridColumn:"1/3",
-
-height:"80px"
-
-}}
-
-onChange={e=>
-
-setForm({...form,observacao:e.target.value})
-
-}
-
-/>
-
-
-</div>
-
-
-
-
-<br/>
-
-<button
-
-className="primary-button"
-
-onClick={salvarCliente}
-
->
-
-Salvar
-
-</button>
 
 
 
 
 </section>
-
-
-)}
 
 
 
@@ -589,256 +398,217 @@ Salvar
 <section className="content-card">
 
 
+
 <h2>
 
-📋 Meus Clientes
+📂 Carteira de Serviços
 
 </h2>
 
 
 
 
+<div className="action-grid">
 
-{clientesOrdenados.map(cliente=>(
 
 
 
-<div
 
-className="cliente-alerta"
-
-key={cliente.id}
-
->
-
-
-
-<div
-
-style={{
-
-display:"grid",
-
-gridTemplateColumns:"2fr 2fr 1fr 120px",
-
-width:"100%"
-
-}}
-
->
-
-
-<strong>
-
-🏢 {cliente.empresa}
-
-</strong>
-
-
-
-<span>
-
-{cliente.servico}
-
-</span>
-
-
-
-
-<span>
-
-🟢 {cliente.status}
-
-</span>
-
-
-
-
-<button
-
-className="primary-button"
-
-onClick={()=>setClienteAberto(cliente)}
-
->
-
-Detalhes
-
-</button>
-
-
-
-</div>
-
-
-
-</div>
-
-
-))}
-
-
-
-</section>
-
-
-
-
-
-
-
-
-
-{clienteAberto && (
-
-
-
-<section className="content-card">
-
-
-<h2>
-
-🏢 {clienteAberto.empresa}
-
-</h2>
-
-
-
-
-<p>👤 {clienteAberto.responsavel}</p>
-
-<p>📱 {clienteAberto.telefone}</p>
-
-<p>📂 {clienteAberto.servico}</p>
-
-<p>💰 R$ {clienteAberto.valor}</p>
-
-<p>📝 {clienteAberto.observacao}</p>
-
-
-
-
-<hr/>
-
-
+<div className="mini-card">
 
 
 <h3>
 
-⚙️ Histórico BPO
+💼 BPO Financeiro
 
 </h3>
 
 
-
-
-{
-
-operacoes
-
-.filter(
-
-op=>op.clienteId===clienteAberto.id
-
-)
-
-.map(op=>(
-
-
-
-<div
-
-key={op.id}
-
-className="cliente-alerta"
-
->
-
-
-
-<div style={{width:"100%"}}>
-
-
-
 <strong>
 
-{op.competencia}
+{bpo}
 
 </strong>
 
 
-
-
 <p>
 
-Progresso: {progresso(op.tarefas)}%
+clientes
 
 </p>
 
 
 
-<progress
+</div>
 
-value={progresso(op.tarefas)}
 
-max="100"
 
-style={{width:"100%"}}
 
-/>
+
+
+
+<div className="mini-card">
+
+
+<h3>
+
+📈 Consultorias
+
+</h3>
+
+
+
+<strong>
+
+{consultorias}
+
+</strong>
+
+
+
+<p>
+
+clientes
+
+</p>
+
+
+</div>
+
+
+
+
+
+
+
+<div className="mini-card">
+
+
+<h3>
+
+👤 Mentorias
+
+</h3>
+
+
+<strong>
+
+{mentorias}
+
+</strong>
+
+
+<p>
+
+clientes
+
+</p>
 
 
 
 </div>
 
 
+
+
 </div>
-
-
-))
-
-
-}
-
-
-
-
-<button
-
-className="primary-button"
-
-onClick={()=>setClienteAberto(null)}
-
->
-
-Fechar
-
-</button>
-
-
-
-
-
-<button
-
-className="primary-button"
-
-style={{marginLeft:10}}
-
-onClick={()=>excluirCliente(clienteAberto.id)}
-
->
-
-Excluir
-
-</button>
 
 
 
 </section>
 
 
-)}
+
+
+
+
+
+
+
+
+<section className="content-card">
+
+
+
+<h2>
+
+⚙️ Operação BPO
+
+</h2>
+
+
+
+
+<div className="action-grid">
+
+
+
+
+
+
+<div className="mini-card">
+
+
+
+<h3>
+
+🔵 Em andamento
+
+</h3>
+
+
+
+<strong>
+
+{processosAbertos}
+
+</strong>
+
+
+<p>
+
+processos
+
+</p>
+
+
+
+</div>
+
+
+
+
+
+
+
+<div className="mini-card">
+
+
+
+<h3>
+
+🟢 Fechados
+
+</h3>
+
+
+
+<strong>
+
+{fechados}
+
+</strong>
+
+
+<p>
+
+concluídos
+
+</p>
+
+
+
+</div>
 
 
 
@@ -846,6 +616,18 @@ Excluir
 
 
 </div>
+
+
+
+
+</section>
+
+
+
+
+
+</div>
+
 
 )
 
@@ -854,4 +636,4 @@ Excluir
 
 
 
-export default ClientsPage
+export default DashboardPage
