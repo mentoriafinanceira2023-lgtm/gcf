@@ -1,139 +1,83 @@
 import { useEffect, useState } from "react"
 
 
-function BPOPage(){
+function ClientsPage(){
 
 
-const [clientes,setClientes]=useState<any[]>([])
+const modelo={
+
+empresa:"",
+responsavel:"",
+telefone:"",
+email:"",
+servico:"BPO Financeiro",
+status:"Ativo",
+valor:"",
+inicio:"",
+origem:"",
+observacao:""
+
+}
 
 
-const [operacoes,setOperacoes]=useState<any[]>(()=>{
 
-const dados=localStorage.getItem("gfa-bpo-operacoes")
+const [clientes,setClientes]=useState<any[]>(()=>{
+
+const dados=localStorage.getItem("gfa-clientes")
 
 return dados ? JSON.parse(dados) : []
 
 })
 
 
-const [competencia,setCompetencia]=useState("Julho/2026")
+const [form,setForm]=useState(modelo)
 
-const [aberto,setAberto]=useState<number|null>(null)
+const [cadastro,setCadastro]=useState(false)
 
+const [editando,setEditando]=useState<any>(null)
 
+const [clienteAberto,setClienteAberto]=useState<any>(null)
 
+const [busca,setBusca]=useState("")
 
-
-// BUSCA CLIENTES DO CRM
-
-useEffect(()=>{
-
-
-const dados=localStorage.getItem("gfa-clientes")
-
-
-if(dados){
-
-
-const todos=JSON.parse(dados)
-
-
-const bpos=todos.filter(
-
-(c:any)=>
-
-c.servico==="BPO Financeiro"
-
-&&
-
-c.status==="Ativo"
-
-)
-
-
-setClientes(bpos)
-
-
-// remove operações sem cliente existente
-
-setOperacoes(
-
-ops=>ops.filter(
-
-op=>
-
-bpos.some(
-
-(c:any)=>c.id===op.clienteId
-
-)
-
-)
-
-)
-
-
-}
-
-
-},[])
+const [filtro,setFiltro]=useState("Todos")
 
 
 
 
 
-
-
-// SALVA PROCESSOS
 
 useEffect(()=>{
 
 
 localStorage.setItem(
 
-"gfa-bpo-operacoes",
+"gfa-clientes",
 
-JSON.stringify(operacoes)
-
-)
-
-
-},[operacoes])
-
-
-
-
-
-
-
-
-
-function progresso(tarefas:any[]=[]){
-
-
-if(tarefas.length===0){
-
-return 0
-
-}
-
-
-const feitas=tarefas.filter(
-
-t=>t.feito
-
-).length
-
-
-
-return Math.round(
-
-(feitas/tarefas.length)*100
+JSON.stringify(clientes)
 
 )
 
 
-}
+},[clientes])
+
+
+
+
+
+
+
+
+const servicos=[
+
+"BPO Financeiro",
+"Consultoria Empresarial",
+"Mentoria Individual",
+"Consultoria Financeira",
+"Diagnóstico Financeiro",
+"Outros"
+
+]
 
 
 
@@ -143,27 +87,12 @@ return Math.round(
 
 
 
-function criarFechamento(cliente:any){
+function salvarCliente(){
 
 
+if(!form.empresa){
 
-const existe=operacoes.some(
-
-op=>
-
-op.clienteId===cliente.id
-
-&&
-
-op.competencia===competencia
-
-)
-
-
-
-if(existe){
-
-alert("Fechamento já criado")
+alert("Informe o cliente")
 
 return
 
@@ -172,63 +101,46 @@ return
 
 
 
-const novo={
+if(editando){
 
+
+setClientes(
+
+clientes.map(c=>
+
+c.id===editando.id
+
+?
+
+{...c,...form}
+
+:
+
+c
+
+)
+
+)
+
+
+
+}else{
+
+
+
+setClientes([
+
+...clientes,
+
+{
 
 id:Date.now(),
 
-clienteId:cliente.id,
+...form,
 
-cliente:cliente.empresa,
-
-competencia,
-
-tarefas:[
-
-
-{
-nome:"Receber extratos bancários",
-feito:false
-},
-
-{
-nome:"Receber faturas cartões",
-feito:false
-},
-
-{
-nome:"Importar lançamentos",
-feito:false
-},
-
-{
-nome:"Conciliar movimentações",
-feito:false
-},
-
-{
-nome:"Atualizar DRE",
-feito:false
-},
-
-{
-nome:"Enviar relatório ao cliente",
-feito:false
-}
-
-
-]
-
+criado:new Date().toLocaleDateString()
 
 }
-
-
-
-setOperacoes([
-
-...operacoes,
-
-novo
 
 ])
 
@@ -238,89 +150,156 @@ novo
 
 
 
+setCadastro(false)
 
+setEditando(null)
 
+setForm(modelo)
 
-
-
-function alterar(id:number,item:string){
-
-
-setOperacoes(
-
-operacoes.map(op=>{
-
-
-if(op.id!==id){
-
-return op
 
 }
 
 
 
-return{
 
 
-...op,
 
 
-tarefas:op.tarefas.map((t:any)=>
 
 
-t.nome===item
+
+function editar(cliente:any){
+
+
+setForm(cliente)
+
+setEditando(cliente)
+
+setCadastro(true)
+
+
+}
+
+
+
+
+
+
+
+
+
+function excluir(id:number){
+
+
+
+if(!confirm("Excluir cliente definitivamente?")){
+
+return
+
+}
+
+
+
+setClientes(
+
+clientes.filter(c=>c.id!==id)
+
+)
+
+
+
+
+const bpo=localStorage.getItem(
+
+"gfa-bpo-operacoes"
+
+)
+
+
+
+if(bpo){
+
+
+const dados=JSON.parse(bpo)
+
+
+localStorage.setItem(
+
+"gfa-bpo-operacoes",
+
+JSON.stringify(
+
+dados.filter(
+
+(op:any)=>op.clienteId!==id
+
+)
+
+)
+
+)
+
+
+}
+
+
+}
+
+
+
+
+
+
+
+
+
+
+const receita=clientes.reduce(
+
+(t,c)=>t+Number(c.valor||0)
+
+,0)
+
+
+
+
+
+
+const lista=clientes
+
+.filter(c=>
+
+c.empresa
+
+.toLowerCase()
+
+.includes(busca.toLowerCase())
+
+)
+
+
+.filter(c=>
+
+filtro==="Todos"
 
 ?
 
-{...t,feito:!t.feito}
+true
 
 :
 
-t
-
-
-)
-
-
-}
-
-
-})
-
+c.servico===filtro
 
 )
 
 
-}
+.sort(
 
-
-
-
-
-
-
-
-const lista=operacoes.filter(
-
-op=>op.competencia===competencia
+(a,b)=>a.empresa.localeCompare(b.empresa)
 
 )
 
 
-
-const andamento=lista.filter(
-
-op=>progresso(op.tarefas)<100
-
-).length
-
-
-
-const fechados=lista.filter(
-
-op=>progresso(op.tarefas)===100
-
-).length
 
 
 
@@ -331,6 +310,8 @@ op=>progresso(op.tarefas)===100
 return(
 
 <div>
+
+
 
 
 
@@ -349,65 +330,44 @@ color:"white"
 >
 
 
+
 <h1>
 
-BPO Financeiro 📂
+Clientes 👥
 
 </h1>
 
 
 <p>
 
-Gestão operacional integrada aos clientes GFA.
+Central 360° GFA
 
 </p>
 
 
-</section>
 
+<button
 
+className="primary-button"
 
+onClick={()=>{
 
+setCadastro(true)
 
+setEditando(null)
 
+setForm(modelo)
 
-
-<section className="content-card">
-
-
-<h2>
-
-📅 Competência
-
-</h2>
-
-
-
-<select
-
-className="input"
-
-value={competencia}
-
-onChange={e=>setCompetencia(e.target.value)}
+}}
 
 >
 
++ Novo Cliente
 
-<option>Julho/2026</option>
-
-<option>Agosto/2026</option>
-
-<option>Setembro/2026</option>
-
-<option>Outubro/2026</option>
-
-
-</select>
+</button>
 
 
 </section>
-
 
 
 
@@ -419,33 +379,81 @@ onChange={e=>setCompetencia(e.target.value)}
 <section className="stats-grid">
 
 
+
 <div className="stat-card">
 
-<p>Clientes BPO</p>
+
+<p>Total Clientes</p>
 
 <strong>{clientes.length}</strong>
 
+
 </div>
+
 
 
 
 <div className="stat-card gold">
 
-<p>Em andamento</p>
 
-<strong>{andamento}</strong>
+<p>Receita Mensal</p>
+
+
+<strong>
+
+
+{
+
+receita.toLocaleString(
+
+"pt-BR",
+
+{
+
+style:"currency",
+
+currency:"BRL"
+
+}
+
+)
+
+}
+
+
+</strong>
+
 
 </div>
+
 
 
 
 <div className="stat-card">
 
-<p>Fechados</p>
 
-<strong>{fechados}</strong>
+<p>Ativos</p>
+
+
+<strong>
+
+
+{
+
+clientes.filter(
+
+c=>c.status==="Ativo"
+
+).length
+
+}
+
+
+</strong>
+
 
 </div>
+
 
 
 </section>
@@ -464,14 +472,274 @@ onChange={e=>setCompetencia(e.target.value)}
 
 <h2>
 
-🏢 Clientes para fechamento
+🔎 Clientes
+
+</h2>
+
+
+
+<div
+
+style={{
+
+display:"grid",
+
+gridTemplateColumns:"2fr 1fr",
+
+gap:"15px"
+
+}}
+
+>
+
+
+
+<input
+
+className="input"
+
+placeholder="Buscar cliente"
+
+value={busca}
+
+onChange={e=>setBusca(e.target.value)}
+
+/>
+
+
+
+
+<select
+
+className="input"
+
+value={filtro}
+
+onChange={e=>setFiltro(e.target.value)}
+
+>
+
+
+<option>Todos</option>
+
+
+{servicos.map(s=>(
+
+<option key={s}>{s}</option>
+
+))}
+
+
+</select>
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+
+
+
+
+{cadastro && (
+
+
+
+<section className="content-card">
+
+
+
+<h2>
+
+{
+
+editando
+
+?
+
+"✏️ Editar Cliente"
+
+:
+
+"➕ Novo Cliente"
+
+}
 
 </h2>
 
 
 
 
-{clientes.map(cliente=>(
+
+<div
+
+style={{
+
+display:"grid",
+
+gridTemplateColumns:"1fr 1fr",
+
+gap:"14px"
+
+}}
+
+>
+
+
+
+
+
+{Object.keys(modelo).map(campo=>(
+
+
+campo==="observacao"
+
+?
+
+<textarea
+
+key={campo}
+
+className="input"
+
+placeholder={campo}
+
+value={(form as any)[campo]}
+
+style={{
+
+gridColumn:"1/3",
+
+height:"90px"
+
+}}
+
+onChange={e=>
+
+setForm({
+
+...form,
+
+[campo]:e.target.value
+
+})
+
+}
+
+/>
+
+
+:
+
+
+<input
+
+key={campo}
+
+className="input"
+
+placeholder={campo}
+
+value={(form as any)[campo]}
+
+onChange={e=>
+
+setForm({
+
+...form,
+
+[campo]:e.target.value
+
+})
+
+}
+
+/>
+
+
+))}
+
+
+
+</div>
+
+
+
+
+
+<br/>
+
+
+
+
+<button
+
+className="primary-button"
+
+onClick={salvarCliente}
+
+>
+
+Salvar
+
+</button>
+
+
+
+
+<button
+
+className="primary-button"
+
+style={{marginLeft:10}}
+
+onClick={()=>setCadastro(false)}
+
+>
+
+Cancelar
+
+</button>
+
+
+
+</section>
+
+
+)}
+
+
+
+
+
+
+
+
+
+
+
+<section className="content-card">
+
+
+<h2>
+
+📋 Meus Clientes
+
+</h2>
+
+
+
+
+
+
+{lista.map(cliente=>(
 
 
 <div
@@ -483,39 +751,111 @@ key={cliente.id}
 >
 
 
+
 <div
 
 style={{
 
-display:"flex",
+display:"grid",
 
-justifyContent:"space-between",
+gridTemplateColumns:"2fr 2fr 1fr 250px",
 
-width:"100%"
+width:"100%",
+
+alignItems:"center"
 
 }}
 
 >
 
 
+
+
 <strong>
 
-{cliente.empresa}
+🏢 {cliente.empresa}
 
 </strong>
 
 
 
 
+<span>
+
+{cliente.servico}
+
+</span>
+
+
+
+
+
+<span>
+
+🟢 {cliente.status}
+
+</span>
+
+
+
+
+
+
+<div>
+
+
+
 <button
 
 className="primary-button"
 
-onClick={()=>criarFechamento(cliente)}
+onClick={()=>setClienteAberto(cliente)}
 
 >
 
-Criar fechamento
+Detalhes
+
+</button>
+
+
+
+
+
+<button
+
+className="primary-button"
+
+style={{marginLeft:8}}
+
+onClick={()=>editar(cliente)}
+
+>
+
+Editar
+
+</button>
+
+
+
+
+
+<button
+
+className="primary-button"
+
+style={{
+
+marginLeft:8,
+
+background:"#8b0000"
+
+}}
+
+onClick={()=>excluir(cliente.id)}
+
+>
+
+Excluir
 
 </button>
 
@@ -524,10 +864,16 @@ Criar fechamento
 </div>
 
 
+
+</div>
+
+
+
 </div>
 
 
 ))}
+
 
 
 </section>
@@ -537,62 +883,56 @@ Criar fechamento
 
 
 
+
+
+
+{clienteAberto && (
 
 
 
 <section className="content-card">
 
 
+
 <h2>
 
-📂 Fechamentos {competencia}
+🏢 {clienteAberto.empresa}
 
 </h2>
 
 
 
+<h3>Dados Gerais</h3>
 
 
-{lista.map(op=>(
+<p>👤 {clienteAberto.responsavel}</p>
 
+<p>📱 {clienteAberto.telefone}</p>
 
-<div
-
-className="cliente-alerta"
-
-key={op.id}
-
->
-
-
-<div style={{width:"100%"}}>
-
-
-<h3>
-
-🏢 {op.cliente}
-
-</h3>
+<p>📧 {clienteAberto.email}</p>
 
 
 
-<p>
 
-Progresso: {progresso(op.tarefas)}%
-
-</p>
+<h3>Contrato</h3>
 
 
+<p>📂 {clienteAberto.servico}</p>
 
-<progress
+<p>💰 R$ {clienteAberto.valor}</p>
 
-value={progresso(op.tarefas)}
+<p>📅 Início: {clienteAberto.inicio}</p>
 
-max="100"
+<p>📌 Origem: {clienteAberto.origem}</p>
 
-style={{width:"100%"}}
 
-/>
+
+
+<h3>Observações</h3>
+
+
+<p>{clienteAberto.observacao}</p>
+
 
 
 
@@ -601,81 +941,32 @@ style={{width:"100%"}}
 
 className="primary-button"
 
-onClick={()=>setAberto(
-
-aberto===op.id?null:op.id
-
-)}
+onClick={()=>setClienteAberto(null)}
 
 >
 
-Abrir Processo
+Fechar
 
 </button>
 
 
 
-
-
-{aberto===op.id && (
-
-<div>
-
-
-{op.tarefas.map((t:any)=>(
-
-
-<p
-
-key={t.nome}
-
-style={{cursor:"pointer"}}
-
-onClick={()=>alterar(op.id,t.nome)}
-
->
-
-
-{t.feito?"✅":"⬜"}
-
-{" "}
-
-{t.nome}
-
-
-</p>
-
-
-))}
-
-
-</div>
+</section>
 
 
 )}
 
 
 
-</div>
-
-
-</div>
-
-
-))}
-
-
-</section>
 
 
 
 </div>
-
 
 )
-
 
 }
 
 
-export default BPOPage
+
+export default ClientsPage
