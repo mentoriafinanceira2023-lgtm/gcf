@@ -10,14 +10,35 @@ empresa:"",
 responsavel:"",
 telefone:"",
 email:"",
-servico:"BPO Financeiro",
+
+servico:"Mentoria Individual",
 status:"Ativo",
+
 valor:"",
 inicio:"",
 origem:"",
-observacao:""
+
+jornada:"Diagnóstico",
+saude:"50",
+proximaReuniao:"",
+
+receita:"",
+despesas:"",
+dividas:"",
+patrimonio:"",
+reserva:"",
+poupanca:"",
+
+perfil:"Moderado",
+objetivo:"",
+
+sessoes:"",
+anotacoes:"",
+plano:"",
+proximos:""
 
 }
+
 
 
 
@@ -39,9 +60,6 @@ const [editando,setEditando]=useState<any>(null)
 const [clienteAberto,setClienteAberto]=useState<any>(null)
 
 const [busca,setBusca]=useState("")
-
-const [filtro,setFiltro]=useState("Todos")
-
 
 
 
@@ -66,28 +84,7 @@ JSON.stringify(clientes)
 
 
 
-
-
-const servicos=[
-
-"BPO Financeiro",
-"Consultoria Empresarial",
-"Mentoria Individual",
-"Consultoria Financeira",
-"Diagnóstico Financeiro",
-"Outros"
-
-]
-
-
-
-
-
-
-
-
-
-function salvarCliente(){
+function salvar(){
 
 
 if(!form.empresa){
@@ -121,7 +118,6 @@ c
 )
 
 )
-
 
 
 }else{
@@ -166,8 +162,6 @@ setForm(modelo)
 
 
 
-
-
 function editar(cliente:any){
 
 
@@ -187,17 +181,14 @@ setCadastro(true)
 
 
 
-
 function excluir(id:number){
 
 
-
-if(!confirm("Excluir cliente definitivamente?")){
+if(!confirm("Excluir cliente?")){
 
 return
 
 }
-
 
 
 setClientes(
@@ -207,42 +198,6 @@ clientes.filter(c=>c.id!==id)
 )
 
 
-
-
-const bpo=localStorage.getItem(
-
-"gfa-bpo-operacoes"
-
-)
-
-
-
-if(bpo){
-
-
-const dados=JSON.parse(bpo)
-
-
-localStorage.setItem(
-
-"gfa-bpo-operacoes",
-
-JSON.stringify(
-
-dados.filter(
-
-(op:any)=>op.clienteId!==id
-
-)
-
-)
-
-)
-
-
-}
-
-
 }
 
 
@@ -253,52 +208,13 @@ dados.filter(
 
 
 
+const lista=clientes.filter(c=>
 
-const receita=clientes.reduce(
-
-(t,c)=>t+Number(c.valor||0)
-
-,0)
-
-
-
-
-
-
-const lista=clientes
-
-.filter(c=>
-
-c.empresa
-
-.toLowerCase()
+c.empresa.toLowerCase()
 
 .includes(busca.toLowerCase())
 
 )
-
-
-.filter(c=>
-
-filtro==="Todos"
-
-?
-
-true
-
-:
-
-c.servico===filtro
-
-)
-
-
-.sort(
-
-(a,b)=>a.empresa.localeCompare(b.empresa)
-
-)
-
 
 
 
@@ -333,16 +249,18 @@ color:"white"
 
 <h1>
 
-Clientes 👥
+CRM Financeiro 360° 💼
 
 </h1>
 
 
+
 <p>
 
-Central 360° GFA
+Gestão completa da jornada financeira dos clientes.
 
 </p>
+
 
 
 
@@ -353,8 +271,6 @@ className="primary-button"
 onClick={()=>{
 
 setCadastro(true)
-
-setEditando(null)
 
 setForm(modelo)
 
@@ -367,98 +283,8 @@ setForm(modelo)
 </button>
 
 
-</section>
-
-
-
-
-
-
-
-
-<section className="stats-grid">
-
-
-
-<div className="stat-card">
-
-
-<p>Total Clientes</p>
-
-<strong>{clientes.length}</strong>
-
-
-</div>
-
-
-
-
-<div className="stat-card gold">
-
-
-<p>Receita Mensal</p>
-
-
-<strong>
-
-
-{
-
-receita.toLocaleString(
-
-"pt-BR",
-
-{
-
-style:"currency",
-
-currency:"BRL"
-
-}
-
-)
-
-}
-
-
-</strong>
-
-
-</div>
-
-
-
-
-<div className="stat-card">
-
-
-<p>Ativos</p>
-
-
-<strong>
-
-
-{
-
-clientes.filter(
-
-c=>c.status==="Ativo"
-
-).length
-
-}
-
-
-</strong>
-
-
-</div>
-
-
 
 </section>
-
-
 
 
 
@@ -472,25 +298,10 @@ c=>c.status==="Ativo"
 
 <h2>
 
-🔎 Clientes
+🔎 Carteira de Clientes
 
 </h2>
 
-
-
-<div
-
-style={{
-
-display:"grid",
-
-gridTemplateColumns:"2fr 1fr",
-
-gap:"15px"
-
-}}
-
->
 
 
 
@@ -498,7 +309,7 @@ gap:"15px"
 
 className="input"
 
-placeholder="Buscar cliente"
+placeholder="Pesquisar cliente..."
 
 value={busca}
 
@@ -508,38 +319,7 @@ onChange={e=>setBusca(e.target.value)}
 
 
 
-
-<select
-
-className="input"
-
-value={filtro}
-
-onChange={e=>setFiltro(e.target.value)}
-
->
-
-
-<option>Todos</option>
-
-
-{servicos.map(s=>(
-
-<option key={s}>{s}</option>
-
-))}
-
-
-</select>
-
-
-</div>
-
-
 </section>
-
-
-
 
 
 
@@ -551,9 +331,7 @@ onChange={e=>setFiltro(e.target.value)}
 {cadastro && (
 
 
-
 <section className="content-card">
-
 
 
 <h2>
@@ -564,16 +342,15 @@ editando
 
 ?
 
-"✏️ Editar Cliente"
+"Editar Cliente"
 
 :
 
-"➕ Novo Cliente"
+"Novo Cliente"
 
 }
 
 </h2>
-
 
 
 
@@ -586,7 +363,7 @@ display:"grid",
 
 gridTemplateColumns:"1fr 1fr",
 
-gap:"14px"
+gap:"12px"
 
 }}
 
@@ -594,52 +371,10 @@ gap:"14px"
 
 
 
-
-
 {Object.keys(modelo).map(campo=>(
 
 
-campo==="observacao"
-
-?
-
 <textarea
-
-key={campo}
-
-className="input"
-
-placeholder={campo}
-
-value={(form as any)[campo]}
-
-style={{
-
-gridColumn:"1/3",
-
-height:"90px"
-
-}}
-
-onChange={e=>
-
-setForm({
-
-...form,
-
-[campo]:e.target.value
-
-})
-
-}
-
-/>
-
-
-:
-
-
-<input
 
 key={campo}
 
@@ -668,6 +403,7 @@ setForm({
 
 
 
+
 </div>
 
 
@@ -676,35 +412,15 @@ setForm({
 
 <br/>
 
-
-
-
 <button
 
 className="primary-button"
 
-onClick={salvarCliente}
+onClick={salvar}
 
 >
 
-Salvar
-
-</button>
-
-
-
-
-<button
-
-className="primary-button"
-
-style={{marginLeft:10}}
-
-onClick={()=>setCadastro(false)}
-
->
-
-Cancelar
+Salvar Cliente
 
 </button>
 
@@ -712,43 +428,14 @@ Cancelar
 
 </section>
 
-
-)}
-
-
-
-
-
-
-
-
-
-
-
-<section className="content-card">
+)}<section className="content-card">
 
 
 <h2>
 
-📋 Meus Clientes
+👥 Clientes
 
 </h2>
-
-
-
-
-
-
-{lista.map(cliente=>(
-
-
-<div
-
-className="cliente-alerta"
-
-key={cliente.id}
-
->
 
 
 
@@ -758,11 +445,9 @@ style={{
 
 display:"grid",
 
-gridTemplateColumns:"2fr 2fr 1fr 250px",
+gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",
 
-width:"100%",
-
-alignItems:"center"
+gap:"18px"
 
 }}
 
@@ -770,38 +455,99 @@ alignItems:"center"
 
 
 
+{lista.map(cliente=>(
+
+
+<div
+
+key={cliente.id}
+
+className="stat-card"
+
+style={{
+
+borderRadius:"18px"
+
+}}
+
+>
+
+
+
+<h2>
+
+👤 {cliente.empresa}
+
+</h2>
+
+
+
+<p>
+
+📂 {cliente.servico}
+
+</p>
+
+
+
+<p>
+
+📍 Jornada:
 
 <strong>
 
-🏢 {cliente.empresa}
+{" "}{cliente.jornada}
+
+</strong>
+
+</p>
+
+
+
+<p>
+
+💚 Saúde Financeira
+
+</p>
+
+
+
+<progress
+
+value={cliente.saude}
+
+max="100"
+
+style={{
+
+width:"100%"
+
+}}
+
+/>
+
+
+
+<strong>
+
+{cliente.saude}%
 
 </strong>
 
 
 
 
-<span>
+<p>
 
-{cliente.servico}
+📅 Próxima reunião:
 
-</span>
+<br/>
 
+{cliente.proximaReuniao || "Não definida"}
 
-
-
-
-<span>
-
-🟢 {cliente.status}
-
-</span>
+</p>
 
 
-
-
-
-
-<div>
 
 
 
@@ -813,10 +559,9 @@ onClick={()=>setClienteAberto(cliente)}
 
 >
 
-Detalhes
+CRM 360°
 
 </button>
-
 
 
 
@@ -834,7 +579,6 @@ onClick={()=>editar(cliente)}
 Editar
 
 </button>
-
 
 
 
@@ -864,16 +608,10 @@ Excluir
 </div>
 
 
-
-</div>
-
-
-
-</div>
-
-
 ))}
 
+
+</div>
 
 
 </section>
@@ -889,50 +627,330 @@ Excluir
 {clienteAberto && (
 
 
-
 <section className="content-card">
+
+
+
+<h1>
+
+👤 {clienteAberto.empresa}
+
+</h1>
+
+
+
+<p>
+
+{clienteAberto.email}
+
+</p>
+
+
+
+
+<hr/>
+
 
 
 
 <h2>
 
-🏢 {clienteAberto.empresa}
+📌 Resumo Financeiro
 
 </h2>
 
 
 
-<h3>Dados Gerais</h3>
 
 
-<p>👤 {clienteAberto.responsavel}</p>
-
-<p>📱 {clienteAberto.telefone}</p>
-
-<p>📧 {clienteAberto.email}</p>
+<div className="stats-grid">
 
 
 
+<div className="stat-card">
 
-<h3>Contrato</h3>
+
+<p>Receita Mensal</p>
+
+<strong>
+
+R$ {clienteAberto.receita}
+
+</strong>
 
 
-<p>📂 {clienteAberto.servico}</p>
-
-<p>💰 R$ {clienteAberto.valor}</p>
-
-<p>📅 Início: {clienteAberto.inicio}</p>
-
-<p>📌 Origem: {clienteAberto.origem}</p>
+</div>
 
 
 
 
-<h3>Observações</h3>
+
+<div className="stat-card">
 
 
-<p>{clienteAberto.observacao}</p>
+<p>Despesas Fixas</p>
 
+<strong>
+
+R$ {clienteAberto.despesas}
+
+</strong>
+
+
+</div>
+
+
+
+
+
+<div className="stat-card gold">
+
+
+<p>Patrimônio</p>
+
+
+<strong>
+
+R$ {clienteAberto.patrimonio}
+
+</strong>
+
+
+</div>
+
+
+
+
+<div className="stat-card">
+
+
+<p>Reserva</p>
+
+<strong>
+
+R$ {clienteAberto.reserva}
+
+</strong>
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<h2>
+
+📊 Indicadores
+
+</h2>
+
+
+
+
+<p>
+
+💳 Dívidas:
+
+R$ {clienteAberto.dividas}
+
+</p>
+
+
+
+<p>
+
+📈 Taxa de poupança:
+
+{clienteAberto.poupanca}%
+
+</p>
+
+
+
+
+<p>
+
+🎯 Objetivo:
+
+{clienteAberto.objetivo}
+
+</p>
+
+
+
+
+<p>
+
+Perfil:
+
+{clienteAberto.perfil}
+
+</p>
+
+
+
+
+
+
+
+
+
+
+<h2>
+
+📝 Mentoria
+
+</h2>
+
+
+
+<p>
+
+Sessões:
+
+{clienteAberto.sessoes}
+
+</p>
+
+
+
+
+<p>
+
+Anotações:
+
+{clienteAberto.anotacoes}
+
+</p>
+
+
+
+
+<p>
+
+Plano de ação:
+
+{clienteAberto.plano}
+
+</p>
+
+
+
+
+<p>
+
+Próximos passos:
+
+{clienteAberto.proximos}
+
+</p>
+
+
+
+
+
+
+
+
+
+<h2>
+
+📈 Jornada GFA
+
+</h2>
+
+
+
+
+<div
+
+style={{
+
+display:"flex",
+
+gap:"10px",
+
+flexWrap:"wrap"
+
+}}
+
+>
+
+
+
+{
+
+[
+
+"Diagnóstico",
+
+"Organização",
+
+"Proteção",
+
+"Investimentos",
+
+"Independência"
+
+]
+
+.map(etapa=>(
+
+
+<div
+
+key={etapa}
+
+className="mini-card"
+
+>
+
+
+{
+
+clienteAberto.jornada===etapa
+
+?
+
+"🟢 "
+
+:
+
+"⚪ "
+
+}
+
+
+{etapa}
+
+
+
+</div>
+
+
+))
+
+
+}
+
+
+
+</div>
+
+
+
+
+
+<br/>
 
 
 
@@ -945,9 +963,10 @@ onClick={()=>setClienteAberto(null)}
 
 >
 
-Fechar
+Fechar CRM
 
 </button>
+
 
 
 
@@ -961,9 +980,11 @@ Fechar
 
 
 
+
 </div>
 
 )
+
 
 }
 
