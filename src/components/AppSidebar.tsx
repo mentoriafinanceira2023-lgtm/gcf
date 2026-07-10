@@ -1,44 +1,178 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink } from "react-router-dom"
 
-type NavItem = {
-  label: string
-  icon: string
-  path: string
+
+function AppSidebar(){
+
+
+const menus=[
+
+{
+nome:"Dashboard",
+icone:"🏠",
+rota:"/dashboard"
+},
+
+{
+nome:"Clientes",
+icone:"👥",
+rota:"/clientes"
+},
+
+{
+nome:"Mentoria Financeira",
+icone:"🧭",
+rota:"/mentoria"
+},
+
+{
+nome:"Agenda",
+icone:"📅",
+rota:"/agenda"
+},
+
+{
+nome:"CRM",
+icone:"🤝",
+rota:"/crm"
+},
+
+{
+nome:"Financeiro",
+icone:"💰",
+rota:"/financeiro"
+},
+
+{
+nome:"BPO",
+icone:"🏢",
+rota:"/bpo"
+},
+
+{
+nome:"Indicadores",
+icone:"📊",
+rota:"/indicadores"
+},
+
+{
+nome:"Documentos",
+icone:"📄",
+rota:"/documentos"
+},
+
+{
+nome:"Configurações",
+icone:"⚙️",
+rota:"/configuracoes"
 }
 
-const navItems: NavItem[] = [
-  { label: 'Dashboard', icon: '🏠', path: '/dashboard' },
-  { label: 'Clientes', icon: '👥', path: '/clientes' },
-  { label: 'Agenda', icon: '📅', path: '/agenda' },
-  { label: 'CRM', icon: '🤝', path: '/crm' },
-  { label: 'Financeiro', icon: '💰', path: '/financeiro' },
-  { label: 'BPO', icon: '🏢', path: '/bpo' },
-  { label: 'Indicadores', icon: '📊', path: '/indicadores' },
-  { label: 'Documentos', icon: '📄', path: '/documentos' },
-  { label: 'Configurações', icon: '⚙', path: '/configuracoes' },
 ]
 
-function AppSidebar() {
-  return (
-    <aside className="sidebar">
-      <div className="brand-block">
-        <div className="brand-mark">GCF</div>
-        <div>
-          <h2>Gestão e Consultoria</h2>
-          <p>Financeira</p>
-        </div>
-      </div>
 
-      <nav className="nav-menu" aria-label="Menu lateral">
-        {navItems.map((item) => (
-          <NavLink key={item.path} to={item.path} className="nav-link">
-            <span className="nav-icon">{item.icon}</span>
-            <span>{item.label}</span>
-          </NavLink>
-        ))}
-      </nav>
-    </aside>
-  )
+
+
+
+
+return(
+
+<aside className="sidebar">
+
+
+
+<div
+style={{
+padding:"24px",
+color:"white"
+}}
+>
+
+
+<h2>
+GFA
+</h2>
+
+
+<h3>
+Gestão e Consultoria
+</h3>
+
+
+<p>
+Financeira
+</p>
+
+
+
+</div>
+
+
+
+
+
+
+<nav>
+
+
+{menus.map(item=>(
+
+
+<NavLink
+
+key={item.rota}
+
+to={item.rota}
+
+className={({isActive})=>
+
+isActive
+
+?
+
+"menu-item active"
+
+:
+
+"menu-item"
+
 }
+
+>
+
+
+<span>
+
+{item.icone}
+
+</span>
+
+
+
+<span>
+
+{item.nome}
+
+</span>
+
+
+
+</NavLink>
+
+
+))}
+
+
+</nav>
+
+
+
+
+</aside>
+
+)
+
+
+}
+
+
 
 export default AppSidebar

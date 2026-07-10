@@ -10,35 +10,22 @@ empresa:"",
 responsavel:"",
 telefone:"",
 email:"",
-
 servico:"Mentoria Individual",
 status:"Ativo",
-
 valor:"",
-inicio:"",
-origem:"",
-
-jornada:"Diagnóstico",
-saude:"50",
-proximaReuniao:"",
 
 receita:"",
 despesas:"",
 dividas:"",
 patrimonio:"",
 reserva:"",
-poupanca:"",
 
-perfil:"Moderado",
-objetivo:"",
+jornada:"Diagnóstico",
+saude:"50",
 
-sessoes:"",
-anotacoes:"",
-plano:"",
-proximos:""
+observacao:""
 
 }
-
 
 
 
@@ -49,6 +36,11 @@ const dados=localStorage.getItem("gfa-clientes")
 return dados ? JSON.parse(dados) : []
 
 })
+
+
+const [mentorias,setMentorias]=useState<any[]>([])
+
+const [bpos,setBpos]=useState<any[]>([])
 
 
 const [form,setForm]=useState(modelo)
@@ -77,7 +69,31 @@ JSON.stringify(clientes)
 )
 
 
+
+const m=localStorage.getItem("gfa-mentorias")
+
+const b=localStorage.getItem("gfa-bpo-operacoes")
+
+
+if(m){
+
+setMentorias(JSON.parse(m))
+
+}
+
+
+if(b){
+
+setBpos(JSON.parse(b))
+
+}
+
+
 },[clientes])
+
+
+
+
 
 
 
@@ -123,7 +139,6 @@ c
 }else{
 
 
-
 setClientes([
 
 ...clientes,
@@ -132,9 +147,7 @@ setClientes([
 
 id:Date.now(),
 
-...form,
-
-criado:new Date().toLocaleDateString()
+...form
 
 }
 
@@ -142,7 +155,6 @@ criado:new Date().toLocaleDateString()
 
 
 }
-
 
 
 
@@ -154,6 +166,7 @@ setForm(modelo)
 
 
 }
+
 
 
 
@@ -181,6 +194,7 @@ setCadastro(true)
 
 
 
+
 function excluir(id:number){
 
 
@@ -189,6 +203,7 @@ if(!confirm("Excluir cliente?")){
 return
 
 }
+
 
 
 setClientes(
@@ -207,10 +222,38 @@ clientes.filter(c=>c.id!==id)
 
 
 
+function progresso(tarefas:any[]=[]){
+
+
+if(tarefas.length===0){
+
+return 0
+
+}
+
+
+return Math.round(
+
+(tarefas.filter(t=>t.feito).length/tarefas.length)*100
+
+)
+
+
+}
+
+
+
+
+
+
+
+
 
 const lista=clientes.filter(c=>
 
-c.empresa.toLowerCase()
+c.empresa
+
+.toLowerCase()
 
 .includes(busca.toLowerCase())
 
@@ -223,10 +266,10 @@ c.empresa.toLowerCase()
 
 
 
+
 return(
 
 <div>
-
 
 
 
@@ -246,21 +289,18 @@ color:"white"
 >
 
 
-
 <h1>
 
-CRM Financeiro 360° 💼
+Cliente 360° GFA 👥
 
 </h1>
 
 
-
 <p>
 
-Gestão completa da jornada financeira dos clientes.
+Central integrada: Cliente + Mentoria + BPO
 
 </p>
-
 
 
 
@@ -271,6 +311,8 @@ className="primary-button"
 onClick={()=>{
 
 setCadastro(true)
+
+setEditando(null)
 
 setForm(modelo)
 
@@ -293,23 +335,15 @@ setForm(modelo)
 
 
 
+
 <section className="content-card">
-
-
-<h2>
-
-🔎 Carteira de Clientes
-
-</h2>
-
-
 
 
 <input
 
 className="input"
 
-placeholder="Pesquisar cliente..."
+placeholder="🔎 Buscar cliente"
 
 value={busca}
 
@@ -318,8 +352,9 @@ onChange={e=>setBusca(e.target.value)}
 />
 
 
-
 </section>
+
+
 
 
 
@@ -336,19 +371,7 @@ onChange={e=>setBusca(e.target.value)}
 
 <h2>
 
-{
-
-editando
-
-?
-
-"Editar Cliente"
-
-:
-
-"Novo Cliente"
-
-}
+{editando?"Editar Cliente":"Novo Cliente"}
 
 </h2>
 
@@ -370,19 +393,18 @@ gap:"12px"
 >
 
 
+{Object.keys(modelo).map(c=>(
 
-{Object.keys(modelo).map(campo=>(
 
+<input
 
-<textarea
-
-key={campo}
+key={c}
 
 className="input"
 
-placeholder={campo}
+placeholder={c}
 
-value={(form as any)[campo]}
+value={(form as any)[c]}
 
 onChange={e=>
 
@@ -390,7 +412,7 @@ setForm({
 
 ...form,
 
-[campo]:e.target.value
+[c]:e.target.value
 
 })
 
@@ -402,15 +424,13 @@ setForm({
 ))}
 
 
-
-
 </div>
 
 
 
 
-
 <br/>
+
 
 <button
 
@@ -420,7 +440,7 @@ onClick={salvar}
 
 >
 
-Salvar Cliente
+Salvar
 
 </button>
 
@@ -428,45 +448,54 @@ Salvar Cliente
 
 </section>
 
-)}<section className="content-card">
+
+)}
+
+
+
+
+
+
+
+
+
+
+
+<section className="content-card">
 
 
 <h2>
 
-👥 Clientes
+📋 Clientes
 
 </h2>
 
 
-
-<div
-
-style={{
-
-display:"grid",
-
-gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",
-
-gap:"18px"
-
-}}
-
->
 
 
 
 {lista.map(cliente=>(
 
 
+
 <div
+
+className="cliente-alerta"
 
 key={cliente.id}
 
-className="stat-card"
+>
+
+
+<div
 
 style={{
 
-borderRadius:"18px"
+display:"flex",
+
+justifyContent:"space-between",
+
+width:"100%"
 
 }}
 
@@ -474,81 +503,38 @@ borderRadius:"18px"
 
 
 
-<h2>
+<div>
+
+
+<h3>
 
 👤 {cliente.empresa}
 
-</h2>
-
-
-
-<p>
-
-📂 {cliente.servico}
-
-</p>
-
+</h3>
 
 
 <p>
 
-📍 Jornada:
-
-<strong>
-
-{" "}{cliente.jornada}
-
-</strong>
+{cliente.servico}
 
 </p>
-
 
 
 <p>
 
-💚 Saúde Financeira
+💚 Saúde: {cliente.saude}%
 
 </p>
 
 
-
-<progress
-
-value={cliente.saude}
-
-max="100"
-
-style={{
-
-width:"100%"
-
-}}
-
-/>
-
-
-
-<strong>
-
-{cliente.saude}%
-
-</strong>
+</div>
 
 
 
 
-<p>
-
-📅 Próxima reunião:
-
-<br/>
-
-{cliente.proximaReuniao || "Não definida"}
-
-</p>
 
 
-
+<div>
 
 
 <button
@@ -559,10 +545,9 @@ onClick={()=>setClienteAberto(cliente)}
 
 >
 
-CRM 360°
+Abrir 360°
 
 </button>
-
 
 
 
@@ -608,13 +593,19 @@ Excluir
 </div>
 
 
-))}
+</div>
 
 
 </div>
 
 
+
+))}
+
+
 </section>
+
+
 
 
 
@@ -630,7 +621,6 @@ Excluir
 <section className="content-card">
 
 
-
 <h1>
 
 👤 {clienteAberto.empresa}
@@ -639,26 +629,32 @@ Excluir
 
 
 
-<p>
-
-{clienteAberto.email}
-
-</p>
 
 
+<h2>
+
+📌 Dados
+
+</h2>
 
 
-<hr/>
+<p>📱 {clienteAberto.telefone}</p>
+
+<p>📧 {clienteAberto.email}</p>
+
+<p>📂 {clienteAberto.servico}</p>
+
+
+
 
 
 
 
 <h2>
 
-📌 Resumo Financeiro
+💰 Resumo Financeiro
 
 </h2>
-
 
 
 
@@ -666,55 +662,32 @@ Excluir
 <div className="stats-grid">
 
 
-
 <div className="stat-card">
 
+<p>Receita</p>
 
-<p>Receita Mensal</p>
-
-<strong>
-
-R$ {clienteAberto.receita}
-
-</strong>
-
+<strong>R$ {clienteAberto.receita}</strong>
 
 </div>
 
 
 
-
-
 <div className="stat-card">
 
+<p>Dívidas</p>
 
-<p>Despesas Fixas</p>
-
-<strong>
-
-R$ {clienteAberto.despesas}
-
-</strong>
-
+<strong>R$ {clienteAberto.dividas}</strong>
 
 </div>
-
 
 
 
 
 <div className="stat-card gold">
 
-
 <p>Patrimônio</p>
 
-
-<strong>
-
-R$ {clienteAberto.patrimonio}
-
-</strong>
-
+<strong>R$ {clienteAberto.patrimonio}</strong>
 
 </div>
 
@@ -723,137 +696,14 @@ R$ {clienteAberto.patrimonio}
 
 <div className="stat-card">
 
-
 <p>Reserva</p>
 
-<strong>
-
-R$ {clienteAberto.reserva}
-
-</strong>
-
+<strong>R$ {clienteAberto.reserva}</strong>
 
 </div>
 
 
-
 </div>
-
-
-
-
-
-
-
-
-
-<h2>
-
-📊 Indicadores
-
-</h2>
-
-
-
-
-<p>
-
-💳 Dívidas:
-
-R$ {clienteAberto.dividas}
-
-</p>
-
-
-
-<p>
-
-📈 Taxa de poupança:
-
-{clienteAberto.poupanca}%
-
-</p>
-
-
-
-
-<p>
-
-🎯 Objetivo:
-
-{clienteAberto.objetivo}
-
-</p>
-
-
-
-
-<p>
-
-Perfil:
-
-{clienteAberto.perfil}
-
-</p>
-
-
-
-
-
-
-
-
-
-
-<h2>
-
-📝 Mentoria
-
-</h2>
-
-
-
-<p>
-
-Sessões:
-
-{clienteAberto.sessoes}
-
-</p>
-
-
-
-
-<p>
-
-Anotações:
-
-{clienteAberto.anotacoes}
-
-</p>
-
-
-
-
-<p>
-
-Plano de ação:
-
-{clienteAberto.plano}
-
-</p>
-
-
-
-
-<p>
-
-Próximos passos:
-
-{clienteAberto.proximos}
-
-</p>
-
 
 
 
@@ -869,91 +719,161 @@ Próximos passos:
 </h2>
 
 
+<p>
+
+{clienteAberto.jornada}
+
+</p>
+
+
+
+
+<progress
+
+value={clienteAberto.saude}
+
+max="100"
+
+style={{width:"100%"}}
+
+/>
+
+
+
+
+
+
+
+
+<h2>
+
+🧭 Histórico Mentoria
+
+</h2>
+
+
+
+
+{mentorias
+
+.filter(m=>m.clienteId===clienteAberto.id)
+
+.map(m=>(
 
 
 <div
 
-style={{
+className="cliente-alerta"
 
-display:"flex",
-
-gap:"10px",
-
-flexWrap:"wrap"
-
-}}
+key={m.id}
 
 >
 
 
+<div>
 
-{
 
-[
+<strong>
 
-"Diagnóstico",
+{m.data} - {m.tema}
 
-"Organização",
+</strong>
 
-"Proteção",
 
-"Investimentos",
+<p>
 
-"Independência"
+{m.acao}
 
-]
+</p>
 
-.map(etapa=>(
+
+</div>
+
+
+</div>
+
+
+))}
+
+
+
+
+
+
+
+
+
+<h2>
+
+🏢 BPO Financeiro
+
+</h2>
+
+
+
+
+{bpos
+
+.filter(b=>b.clienteId===clienteAberto.id)
+
+.map(b=>(
 
 
 <div
 
-key={etapa}
+className="cliente-alerta"
 
-className="mini-card"
+key={b.id}
 
 >
 
 
-{
-
-clienteAberto.jornada===etapa
-
-?
-
-"🟢 "
-
-:
-
-"⚪ "
-
-}
+<div style={{width:"100%"}}>
 
 
-{etapa}
+<strong>
+
+{b.competencia}
+
+</strong>
+
+
+
+<p>
+
+Progresso: {progresso(b.tarefas)}%
+
+</p>
+
+
+
+<progress
+
+value={progresso(b.tarefas)}
+
+max="100"
+
+style={{width:"100%"}}
+
+/>
 
 
 
 </div>
 
 
-))
-
-
-}
-
-
-
 </div>
+
+
+))}
+
+
 
 
 
 
 
 <br/>
-
-
-
 
 <button
 
@@ -963,10 +883,9 @@ onClick={()=>setClienteAberto(null)}
 
 >
 
-Fechar CRM
+Fechar
 
 </button>
-
 
 
 
@@ -980,11 +899,9 @@ Fechar CRM
 
 
 
-
 </div>
 
 )
-
 
 }
 
